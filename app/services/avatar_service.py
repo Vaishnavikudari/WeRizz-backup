@@ -15,8 +15,9 @@ class AvatarService:
                 response = requests.post(
                     READY_PLAYER_ME_API,
                     files={"file": img},
-                    data={"gender": "neutral"}, # or detect gender? neutral is safe
-                    headers={} # API Key optional for basic use
+                    data={"gender": "neutral"},
+                    headers={},
+                    timeout=3
                 )
             
             if response.status_code in [200, 201]:

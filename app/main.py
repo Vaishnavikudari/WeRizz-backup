@@ -1,6 +1,8 @@
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2" # Suppress TF Info/Warnings
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +35,11 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(chat_endpoint.router, prefix=settings.API_V1_STR)
+
+@app.get('/health')
+def root_health():
+    return {'status': 'ok', 'app': settings.PROJECT_NAME}
+
 
 # --- Frontend Serving (Deployment) ---
 # Check if frontend build exists (Render/Production)

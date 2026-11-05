@@ -1,260 +1,284 @@
 import React from 'react';
-import { ArrowRight, Brain, Shield, Heart } from 'lucide-react';
+import { 
+    MessageCircle, Pill, CalendarPlus, ScanLine, 
+    Users, MapPin, Navigation, BellRing, ArrowRight 
+} from 'lucide-react';
+import BrainCanvas from '../components/BrainCanvas';
 
-const LandingPage = ({ onGetStarted }) => {
+const FEATURES = [
+    {
+        title: "Assistant",
+        icon: MessageCircle,
+        line: "Talks and answers, in a calm voice."
+    },
+    {
+        title: "Medicine reminder",
+        icon: Pill,
+        line: "One-tap confirm for every dose."
+    },
+    {
+        title: "Add medicines",
+        icon: CalendarPlus,
+        line: "Times, dose and a photo of the pill."
+    },
+    {
+        title: "Scan",
+        icon: ScanLine,
+        line: "Point the camera at a face or object. Get a name and notes."
+    },
+    {
+        title: "People & items",
+        icon: Users,
+        line: "Photos and notes for the people and things that matter."
+    },
+    {
+        title: "Live location",
+        icon: MapPin,
+        line: "Map view with a safe zone for family."
+    },
+    {
+        title: "Take me home",
+        icon: Navigation,
+        line: "Simple directions back home when lost."
+    },
+    {
+        title: "Alerts & log",
+        icon: BellRing,
+        line: "Missed doses and SOS events, recorded."
+    }
+];
+
+const STEPS = [
+    {
+        num: "01",
+        title: "Set up",
+        desc: "Caregiver adds medicines, people, objects, safe zone."
+    },
+    {
+        num: "02",
+        title: "Daily use",
+        desc: "Patient talks, scans, confirms doses."
+    },
+    {
+        num: "03",
+        title: "Peace of mind",
+        desc: "Family sees location, missed doses, SOS."
+    }
+];
+
+const LandingPage = ({ onGetStarted, onLaunchPatient, onLaunchFamily }) => {
+    const currentYear = new Date().getFullYear();
+
     return (
-        <div className="landing-container">
+        <div className="w-full bg-[#0b0b0c] text-[#f4f4f2] min-h-screen selection:bg-[#9b8afb]/20 selection:text-[#f4f4f2]">
+            
+            {/* 1. HERO SECTION (id="home") */}
+            <section 
+                id="home" 
+                className="w-full max-w-[1160px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24 lg:py-28"
+            >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                    
+                    {/* Left Column: Editorial Typography & Actions */}
+                    <div className="lg:col-span-6 flex flex-col justify-center">
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-5 block">
+                            Memory care companion
+                        </span>
 
-            {/* Background Gradients */}
-            <div className="bg-blob blob-1"></div>
-            <div className="bg-blob blob-2"></div>
+                        <h1 
+                            className="font-serif text-4xl sm:text-5xl lg:text-[56px] tracking-[-0.025em] leading-[1.05] text-[#f4f4f2] mb-6"
+                            style={{ fontFamily: 'Georgia, "Instrument Serif", serif' }}
+                        >
+                            Your intelligent <span className="italic text-[#9b8afb]">second memory</span>
+                        </h1>
 
+                        <p className="text-[#8d8d92] text-base sm:text-lg leading-[1.6] max-w-xl mb-8">
+                            Mavora helps people living with dementia remember faces, objects and medicines, and gives their families real-time reassurance.
+                        </p>
 
+                        <div className="flex flex-wrap items-center gap-3">
+                            <button
+                                onClick={onGetStarted}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#f4f4f2] text-[#0b0b0c] text-sm font-medium rounded-lg hover:bg-[#e2e2e0] transition-colors duration-150 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f4f4f2] cursor-pointer"
+                            >
+                                <span>Get started</span>
+                                <ArrowRight size={15} />
+                            </button>
 
-            {/* Hero Section */}
-            <main className="hero-section">
-                <div className="hero-content">
-                    <div className="badge">🚀 Revolutionizing Alzheimer's Care</div>
-                    <h1 className="hero-title">
-                        Your External <br />
-                        <span className="gradient-text">Second Brain</span>
-                    </h1>
-                    <p className="hero-desc">
-                        Masthishq empowers patients with AI-driven memory recall, object recognition, and a friendly companion that never forgets.
-                    </p>
-
-                    <div className="hero-buttons">
-                        <button onClick={onGetStarted} className="btn-primary">
-                            Get Started Now <ArrowRight size={20} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Visual/Hero Image */}
-                <div className="hero-visual">
-                    <div className="chat-card">
-                        <div className="chat-header">
-                            <img src="/assets/speaking.gif" alt="Avatar" className="avatar-img" />
-                            <div>
-                                <div style={{ fontWeight: 'bold' }}>Masthishq Assistant</div>
-                                <div style={{ fontSize: '0.8rem', color: '#4ade80' }}>● Online</div>
-                            </div>
+                            <button
+                                onClick={onLaunchFamily}
+                                className="inline-flex items-center px-5 py-2.5 border border-[rgba(244,244,242,0.15)] text-[#f4f4f2] text-sm font-medium rounded-lg hover:bg-[rgba(244,244,242,0.05)] transition-colors duration-150 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f4f4f2] cursor-pointer"
+                            >
+                                I'm a caregiver
+                            </button>
                         </div>
-                        <div className="chat-bubble bot">Hello! I noticed Aunt May visited.</div>
-                        <div className="chat-bubble user">Show me her photo.</div>
-                        <div className="chat-bubble bot">Here is Aunt May.</div>
                     </div>
-                </div>
-            </main>
 
-            {/* Features Grid */}
-            <section id="features" className="features-section">
-                <h2 className="section-title">Why Masthishq?</h2>
-                <div className="features-grid">
-                    <FeatureCard
-                        icon={<Brain color="#a78bfa" size={40} />}
-                        title="Memory Recall"
-                        desc="Instantly identify faces and objects using advanced AI vision."
-                    />
-                    <FeatureCard
-                        icon={<Shield color="#60a5fa" size={40} />}
-                        title="Safe & Secure"
-                        desc="All memories are stored locally on your device for maximum privacy."
-                    />
-                    <FeatureCard
-                        icon={<Heart color="#f472b6" size={40} />}
-                        title="Family Connected"
-                        desc="Caregivers can update memories remotely to keep you supported."
-                    />
+                    {/* Right Column: Restrained 3D Particle Brain (Transparent, no circle/halo) */}
+                    <div className="lg:col-span-6 w-full flex items-center justify-center">
+                        <div className="w-full max-w-[480px] aspect-square relative flex items-center justify-center">
+                            <BrainCanvas className="w-full h-full flex items-center justify-center relative select-none pointer-events-none" />
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
-            <footer className="footer">
-                © 2026 Masthishq Project. All rights reserved.
+            {/* 2. FEATURES SECTION (id="features") */}
+            <section 
+                id="features" 
+                className="w-full max-w-[1160px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24 lg:py-28 border-t border-[rgba(244,244,242,0.10)]"
+            >
+                <div className="max-w-xl mb-12">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-3 block">
+                        What it does
+                    </span>
+                    <h2 
+                        className="font-serif text-2xl sm:text-3xl lg:text-4xl tracking-[-0.02em] leading-[1.1] text-[#f4f4f2]"
+                        style={{ fontFamily: 'Georgia, "Instrument Serif", serif' }}
+                    >
+                        Eight small tools, one simple routine.
+                    </h2>
+                </div>
+
+                {/* 4-column ruled grid (2 on tablet, 1 on mobile) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-[rgba(244,244,242,0.10)] rounded-lg overflow-hidden">
+                    {FEATURES.map((item, idx) => {
+                        const Icon = item.icon;
+                        return (
+                            <div 
+                                key={idx} 
+                                className="p-6 border-r border-b border-[rgba(244,244,242,0.10)] flex flex-col justify-between min-h-[160px] bg-[#0b0b0c] hover:bg-[#141415] transition-colors duration-150"
+                            >
+                                <div>
+                                    <Icon size={20} className="text-[#9b8afb] mb-4 stroke-[1.5]" />
+                                    <h3 className="text-[#f4f4f2] text-sm font-medium mb-1.5">
+                                        {item.title}
+                                    </h3>
+                                </div>
+                                <p className="text-[#8d8d92] text-xs sm:text-sm leading-relaxed">
+                                    {item.line}
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {/* 3. HOW IT WORKS SECTION (id="how-it-works") */}
+            <section 
+                id="how-it-works" 
+                className="w-full max-w-[1160px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24 lg:py-28 border-t border-[rgba(244,244,242,0.10)]"
+            >
+                <div className="max-w-xl mb-12">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-3 block">
+                        How it works
+                    </span>
+                    <h2 
+                        className="font-serif text-2xl sm:text-3xl lg:text-4xl tracking-[-0.02em] leading-[1.1] text-[#f4f4f2]"
+                        style={{ fontFamily: 'Georgia, "Instrument Serif", serif' }}
+                    >
+                        Designed for daily clarity.
+                    </h2>
+                </div>
+
+                {/* 3-column ruled grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-[rgba(244,244,242,0.10)] rounded-lg overflow-hidden">
+                    {STEPS.map((step, idx) => (
+                        <div 
+                            key={idx} 
+                            className="p-8 border-r border-b border-[rgba(244,244,242,0.10)] flex flex-col justify-between min-h-[180px] bg-[#0b0b0c] hover:bg-[#141415] transition-colors duration-150"
+                        >
+                            <span className="font-mono text-xs text-[#8d8d92]/70 mb-6 block">
+                                {step.num}
+                            </span>
+                            <div>
+                                <h3 className="text-[#f4f4f2] text-base font-medium mb-2">
+                                    {step.title}
+                                </h3>
+                                <p className="text-[#8d8d92] text-sm leading-relaxed">
+                                    {step.desc}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 4. TWO AUDIENCES SECTION (id="get-started") */}
+            <section 
+                id="get-started" 
+                className="w-full max-w-[1160px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-24 lg:py-28 border-t border-[rgba(244,244,242,0.10)]"
+            >
+                <div className="border border-[rgba(244,244,242,0.10)] rounded-lg grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[rgba(244,244,242,0.10)] overflow-hidden">
+                    
+                    {/* Left Panel: For the patient */}
+                    <div className="p-8 sm:p-12 flex flex-col justify-between bg-[#0b0b0c]">
+                        <div className="mb-8">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-3 block">
+                                For the patient
+                            </span>
+                            <h3 
+                                className="font-serif text-2xl sm:text-3xl tracking-[-0.02em] leading-[1.1] text-[#f4f4f2] mb-3"
+                                style={{ fontFamily: 'Georgia, "Instrument Serif", serif' }}
+                            >
+                                Simple, calm, hands-free.
+                            </h3>
+                            <p className="text-[#8d8d92] text-sm leading-relaxed max-w-sm">
+                                Voice-first companion designed to comfort, guide and reassure without technical friction.
+                            </p>
+                        </div>
+                        <div>
+                            <button
+                                onClick={onLaunchPatient}
+                                className="inline-flex items-center gap-2 text-sm text-[#f4f4f2] hover:text-[#9b8afb] transition-colors duration-150 underline underline-offset-4 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#f4f4f2] cursor-pointer"
+                            >
+                                <span>Open patient app</span>
+                                <ArrowRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Right Panel: For family */}
+                    <div className="p-8 sm:p-12 flex flex-col justify-between bg-[#0b0b0c]">
+                        <div className="mb-8">
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-3 block">
+                                For family
+                            </span>
+                            <h3 
+                                className="font-serif text-2xl sm:text-3xl tracking-[-0.02em] leading-[1.1] text-[#f4f4f2] mb-3"
+                                style={{ fontFamily: 'Georgia, "Instrument Serif", serif' }}
+                            >
+                                Know they're safe.
+                            </h3>
+                            <p className="text-[#8d8d92] text-sm leading-relaxed max-w-sm">
+                                Full caregiver control for medication scheduling, geo-fence monitoring, and real-time logs.
+                            </p>
+                        </div>
+                        <div>
+                            <button
+                                onClick={onLaunchFamily}
+                                className="inline-flex items-center gap-2 text-sm text-[#f4f4f2] hover:text-[#9b8afb] transition-colors duration-150 underline underline-offset-4 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#f4f4f2] cursor-pointer"
+                            >
+                                <span>Open caregiver portal</span>
+                                <ArrowRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            {/* 5. FOOTER */}
+            <footer className="w-full border-t border-[rgba(244,244,242,0.10)] py-8 px-6 sm:px-8 lg:px-12">
+                <div className="max-w-[1160px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8d8d92]">
+                    <p>© {currentYear} Mavora</p>
+                    <p>Mavora is a support tool and not a medical device.</p>
+                </div>
             </footer>
 
-            <style>{`
-        .landing-container {
-            min-height: 100vh;
-            background: #0f172a;
-            color: white;
-            font-family: system-ui, sans-serif;
-            position: relative;
-            overflow-x: hidden;
-        }
-        .bg-blob {
-            position: absolute;
-            width: 50vw;
-            height: 50vw;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.3;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .blob-1 { background: #7c3aed; top: -10%; left: -10%; }
-        .blob-2 { background: #2563eb; bottom: -10%; right: -10%; }
-
-        .navbar {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .logo { display: flex; align-items: center; gap: 10px; }
-        .brand-name {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { color: #cbd5e1; text-decoration: none; transition: 0.2s; }
-        .nav-links a:hover { color: white; }
-        .btn-login {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 20px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-login:hover { background: rgba(255,255,255,0.2); }
-
-        .hero-section {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 80px 20px;
-            gap: 50px;
-        }
-        .hero-content { flex: 1; }
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid rgba(124, 58, 237, 0.3);
-            color: #c4b5fd;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-        .hero-title {
-            font-size: 4rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 20px;
-        }
-        .gradient-text {
-            background: linear-gradient(90deg, #a78bfa, #f472b6, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .hero-desc {
-            font-size: 1.2rem;
-            color: #94a3b8;
-            margin-bottom: 40px;
-            max-width: 500px;
-            line-height: 1.6;
-        }
-        .btn-primary {
-            background: linear-gradient(90deg, #7c3aed, #2563eb);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.2s;
-        }
-        .btn-primary:hover { transform: scale(1.05); }
-
-        .hero-visual { flex: 1; display: flex; justify-content: center; }
-        .chat-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        .chat-header { display: flex; items-center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        .avatar-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #334155; }
-        .chat-bubble {
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            max-width: 80%;
-        }
-        .bot { background: rgba(30, 41, 59, 0.8); color: #cbd5e1; border-top-left-radius: 0; }
-        .user { background: rgba(124, 58, 237, 0.2); color: white; margin-left: auto; border-top-right-radius: 0; border: 1px solid rgba(124, 58, 237, 0.3); }
-
-        .features-section {
-            background: rgba(15, 23, 42, 0.5);
-            padding: 80px 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; }
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .feature-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-        .feature-card:hover { transform: translateY(-5px); border-color: #a78bfa; }
-        .feature-icon {
-            background: #0f172a;
-            padding: 15px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .feature-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 10px; }
-        .feature-desc { color: #94a3b8; line-height: 1.6; }
-        
-        .footer { background: #020617; padding: 40px; text-align: center; color: #64748b; font-size: 0.9rem; }
-        
-        @media (max-width: 768px) {
-            .hero-section { flex-direction: column; text-align: center; }
-            .hero-buttons { justify-content: center; }
-            .nav-links { display: none; }
-        }
-      `}</style>
         </div>
     );
 };
-
-const FeatureCard = ({ icon, title, desc }) => (
-    <div className="feature-card">
-        <div className="feature-icon">{icon}</div>
-        <h3 className="feature-title">{title}</h3>
-        <p className="feature-desc">{desc}</p>
-    </div>
-);
 
 export default LandingPage;

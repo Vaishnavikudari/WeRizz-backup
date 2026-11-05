@@ -17,7 +17,7 @@ const LoginPage = ({ onSelectRole }) => {
                     <h2 className="role-title">I am a User</h2>
                     <p className="role-desc">Access your assistant, memory aid, and companion.</p>
                     <div className="role-btn-wrapper">
-                        <span className="role-btn patient-btn">Enter Masthishq &rarr;</span>
+                        <span className="role-btn patient-btn">Enter MAVORA &rarr;</span>
                     </div>
                 </div>
 

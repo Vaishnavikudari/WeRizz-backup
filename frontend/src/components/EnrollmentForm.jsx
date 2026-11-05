@@ -1,187 +1,381 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
+import { 
+    UserPlus, 
+    PackagePlus, 
+    Sparkles, 
+    UploadCloud, 
+    Check, 
+    X, 
+    Camera, 
+    AlertTriangle,
+    RefreshCw,
+    Trash2
+} from 'lucide-react';
 import AudioRecorder from './AudioRecorder';
-import { UserPlus, PackagePlus, Save, X, Mic, Image as ImageIcon } from 'lucide-react';
 
-function EnrollmentForm({ type = 'person', onCancel, onSave }) {
-    const [name, setName] = useState("");
-    const [relation, setRelation] = useState("Acquaintance");
-    const [age, setAge] = useState("");
-    const [notes, setNotes] = useState("");
-    const [audioBlob, setAudioBlob] = useState(null);
-    const [avatarUrl, setAvatarUrl] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
+function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
     const isPerson = type === 'person';
+    
+    // Exactly matches Family / Caregiver Mode
+    const [formData, setFormData] = useState({ name: '', relation: '', notes: '', age: '' });
+    const [file, setFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+    const [audioBlob, setAudioBlob] = useState(null);
+    const [status, setStatus] = useState(null); // 'submitting' | 'success' | 'error'
+    const [errorMessage, setErrorMessage] = useState(null);
+
+    // Live Camera snap mode option
+    const [useCamera, setUseCamera] = useState(false);
+    const [cameraStream, setCameraStream] = useState(null);
+    const videoRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+            }
+        };
+    }, [cameraStream]);
+
+    const startCamera = async () => {
+        try {
+            setUseCamera(true);
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+                audio: false
+            });
+            setCameraStream(stream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                try {
+                    await videoRef.current.play();
+                } catch (e) {
+                    console.warn("Video play error:", e);
+                }
+            }
+        } catch (err) {
+            console.error("Camera access error:", err);
+            setUseCamera(false);
+            alert("Could not access camera. Please allow camera permissions or upload a photo file.");
+        }
+    };
+
+    const stopCamera = () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(t => t.stop());
+            setCameraStream(null);
+        }
+        setUseCamera(false);
+    };
+
+    const snapCameraPhoto = () => {
+        if (!videoRef.current) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth || 640;
+        canvas.height = videoRef.current.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const snappedFile = new File([blob], `${(formData.name || 'person').replace(/\s+/g, '_')}_snap.jpg`, { type: "image/jpeg" });
+                setFile(snappedFile);
+                setFilePreview(URL.createObjectURL(blob));
+            }
+            stopCamera();
+        }, 'image/jpeg', 0.92);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        // Pass parent wrapper call
-        const result = await onSave({ name, relation, age, notes, audioBlob });
-        if (result && result.avatar_url) {
-            setAvatarUrl(result.avatar_url);
+        if (!formData.name.trim()) return alert("Please enter a name.");
+        if (!file) return alert("Please upload or take a photo.");
+
+        setStatus('submitting');
+        setErrorMessage(null);
+
+        const data = new FormData();
+        data.append('file', file);
+        data.append('name', formData.name.trim());
+        data.append('notes', formData.notes || '');
+
+        try {
+            if (!isPerson) {
+                // Object enrollment
+                const res = await axios.post(`${API_BASE}/remember/object`, data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (res.data && res.data.status === 'stored') {
+                    setStatus('success');
+                    setTimeout(() => {
+                        if (onSuccess) onSuccess({ name: formData.name, ...res.data });
+                        else if (onCancel) onCancel();
+                    }, 1200);
+                } else {
+                    throw new Error(res.data?.message || "Failed to save item");
+                }
+            } else {
+                // Person enrollment - SAME AS FAMILY MODE
+                data.append('relation', formData.relation || 'Family');
+                if (formData.age) data.append('age', formData.age);
+                if (audioBlob) data.append('audio_file', audioBlob, 'voice.webm');
+
+                const res = await axios.post(`${API_BASE}/remember/person`, data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (res.data && res.data.status === 'stored') {
+                    setStatus('success');
+                    setTimeout(() => {
+                        if (onSuccess) onSuccess({ name: formData.name, ...res.data });
+                        else if (onCancel) onCancel();
+                    }, 1200);
+                } else {
+                    setStatus('error');
+                    setErrorMessage(res.data?.message || 'Could not enroll person. Please try again.');
+                }
+            }
+        } catch (err) {
+            console.error("Enrollment error:", err);
+            setStatus('error');
+            const detail = err.response?.data?.detail || err.message || 'Server connection error';
+            setErrorMessage(`Failed to save: ${detail}`);
         }
-        setIsSubmitting(false);
     };
 
     return (
-        <div className="enrollment-container">
-            <div className="enrollment-header">
-                <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${isPerson ? 'bg-purple-500/20 text-purple-400' : 'bg-orange-500/20 text-orange-400'}`}>
-                        {isPerson ? <UserPlus size={24} /> : <PackagePlus size={24} />}
-                    </div>
+        <div className="w-full h-full bg-[#0d0d12] text-slate-100 flex flex-col p-4 md:p-6 overflow-y-auto">
+            <div className="max-w-xl w-full mx-auto bg-[#131319] border border-white/10 rounded-3xl p-5 md:p-7 shadow-2xl space-y-5">
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-white/5 pb-4">
                     <div>
-                        <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                            {avatarUrl ? "Enrollment Complete" : (isPerson ? "New Person" : "New Object")}
-                        </h3>
-                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
-                            {isPerson ? "Social Memory" : "Personal Belonging"}
+                        <div className="flex items-center gap-2 text-violet-400 mb-1">
+                            {isPerson ? <UserPlus size={18} /> : <PackagePlus size={18} />}
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
+                                {isPerson ? "Memory Bank Enrollment" : "Item Tracking Enrollment"}
+                            </span>
+                        </div>
+                        <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                            <Sparkles size={18} className="text-violet-400" />
+                            {isPerson ? "Enroll Loved One" : "Enroll Personal Item"}
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-1">
+                            {isPerson 
+                                ? "Upload a face photo so Mavora and the family portal can recognize them instantly."
+                                : "Upload an item photo to remember where you placed it."}
                         </p>
                     </div>
+                    <button
+                        onClick={onCancel}
+                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                        title="Cancel and return to chat"
+                    >
+                        <X size={18} />
+                    </button>
                 </div>
-                <button onClick={onCancel} className="close-btn"><X size={20} /></button>
-            </div>
 
-            {!avatarUrl ? (
-                <form onSubmit={handleSubmit} className="enroll-form space-y-5">
-                    {/* Name Field */}
-                    <div className="form-group">
-                        <label className="text-sm font-medium text-slate-400 mb-1 block">
-                            {isPerson ? "Who is this?" : "What is this object?"}
-                        </label>
-                        <input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500/50 outline-none transition-all placeholder:text-slate-600"
-                            placeholder={isPerson ? "e.g. Aunt May" : "e.g. Medicine Box"}
-                        />
+                {/* Status Banners */}
+                {status === 'success' && (
+                    <div className="p-4 bg-emerald-950/80 border border-emerald-500/50 rounded-2xl flex items-center gap-3 text-emerald-300 font-bold text-xs">
+                        <Check size={18} className="text-emerald-400" />
+                        <div>
+                            <p>{isPerson ? "Person successfully enrolled into Memory Bank!" : "Item successfully remembered!"}</p>
+                            <p className="text-[10px] text-emerald-400/80 font-normal">Saved to family memory. Returning to assistant...</p>
+                        </div>
                     </div>
+                )}
 
-                    {/* Person Specific Fields */}
-                    {isPerson && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="form-group">
-                                <label className="text-sm font-medium text-slate-400 mb-1 block">Relation</label>
-                                <select
-                                    value={relation}
-                                    onChange={(e) => setRelation(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500/50 outline-none appearance-none"
-                                >
-                                    <option>Family</option>
-                                    <option>Friend</option>
-                                    <option>Caregiver</option>
-                                    <option>Doctor</option>
-                                    <option>Acquaintance</option>
-                                    <option>Other</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label className="text-sm font-medium text-slate-400 mb-1 block">Age (Opt)</label>
+                {status === 'error' && (
+                    <div className="p-4 bg-rose-950/80 border border-rose-500/50 rounded-2xl flex items-center gap-3 text-rose-300 font-bold text-xs">
+                        <AlertTriangle size={18} className="text-rose-400 flex-shrink-0" />
+                        <div>
+                            <p>{errorMessage || 'Enrollment failed. Please check photo and try again.'}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Main Form - Same as Family Mode */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-semibold text-slate-300">
+                                {isPerson ? "Full Name *" : "Item Name *"}
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                placeholder={isPerson ? "e.g. Rahul Sharma" : "e.g. Medicine Box, Keys"}
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                            />
+                        </div>
+
+                        {isPerson ? (
+                            <div>
+                                <label className="text-xs font-semibold text-slate-300">Relationship *</label>
                                 <input
-                                    type="number"
-                                    value={age}
-                                    onChange={(e) => setAge(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500/50 outline-none"
-                                    placeholder="e.g. 64"
+                                    type="text"
+                                    placeholder="e.g. Grandson / Daughter / Doctor"
+                                    value={formData.relation}
+                                    onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
+                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                                 />
                             </div>
-                        </div>
-                    )}
+                        ) : (
+                            <div>
+                                <label className="text-xs font-semibold text-slate-300">Usual Location</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Bedside table / Living room shelf"
+                                    value={formData.relation}
+                                    onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
+                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                                />
+                            </div>
+                        )}
+                    </div>
 
-                    {/* Notes Field */}
-                    <div className="form-group">
-                        <label className="text-sm font-medium text-slate-400 mb-1 block">Memory Notes</label>
+                    <div>
+                        <label className="text-xs font-semibold text-slate-300">
+                            {isPerson ? "Key Memories & Context Notes (Whispered to Patient)" : "Description / Details"}
+                        </label>
                         <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-white focus:ring-2 focus:ring-purple-500/50 outline-none resize-none h-24 placeholder:text-slate-600"
-                            placeholder={isPerson ? "Lives in New Jersey, likes knitting..." : "Usually kept on the dining table..."}
+                            rows="2"
+                            placeholder={isPerson ? "e.g. Loves acoustic guitar, visits on Sundays, brought jalebis last week." : "e.g. Blue plastic box with morning and night pill slots."}
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                         />
                     </div>
 
-                    {/* Voice Sample (Person Only) */}
-                    {isPerson && (
-                        <div className="bg-slate-800/30 border border-slate-700/50 p-4 rounded-xl">
-                            <label className="text-sm font-medium text-purple-300 mb-3 flex items-center gap-2">
-                                <Mic size={16} /> Voice Verification Sample
+                    {/* PHOTO UPLOAD & CAMERA SNAP SECTION - Exactly like Family Mode */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-semibold text-slate-300">
+                                {isPerson ? "Face Photo *" : "Item Photo *"}
                             </label>
-                            <AudioRecorder onRecordingComplete={setAudioBlob} />
+                            {!useCamera && (
+                                <button
+                                    type="button"
+                                    onClick={startCamera}
+                                    className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1.5 font-medium transition-colors"
+                                >
+                                    <Camera size={14} />
+                                    <span>Take Photo with Camera</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Camera Stream Overlay */}
+                        {useCamera ? (
+                            <div className="relative rounded-2xl overflow-hidden bg-black border border-violet-500/40 p-2 flex flex-col items-center">
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className="w-full max-h-56 object-cover rounded-xl"
+                                />
+                                <div className="flex items-center gap-3 mt-3">
+                                    <button
+                                        type="button"
+                                        onClick={snapCameraPhoto}
+                                        className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 flex items-center gap-2"
+                                    >
+                                        <Camera size={14} /> Snap Photo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={stopCamera}
+                                        className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-semibold rounded-xl"
+                                    >
+                                        Cancel Camera
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            /* File Upload Box (Same as Family Mode) */
+                            <div className="relative">
+                                <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/15 hover:border-violet-500/60 p-5 rounded-2xl cursor-pointer bg-[#181820] transition-all">
+                                    {filePreview ? (
+                                        <div className="relative group">
+                                            <img 
+                                                src={filePreview} 
+                                                alt="Preview" 
+                                                className="max-h-40 rounded-xl object-contain shadow-lg border border-violet-500/30" 
+                                            />
+                                            <div className="text-center mt-2">
+                                                <span className="text-[11px] text-violet-300 font-semibold underline">Click to change photo</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-slate-400 py-3">
+                                            <UploadCloud size={32} className="mx-auto mb-2 text-violet-400" />
+                                            <span className="text-xs font-bold text-slate-200 block">Click to Upload Photo</span>
+                                            <p className="text-[10px] text-slate-500 mt-1">JPEG, PNG with clear face visibility</p>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const f = e.target.files[0];
+                                            if (f) {
+                                                setFile(f);
+                                                setFilePreview(URL.createObjectURL(f));
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Voice Sample (Optional for Person) */}
+                    {isPerson && (
+                        <div>
+                            <label className="text-xs font-semibold text-slate-300 block mb-2">Voice Recording (Optional)</label>
+                            <div className="p-3 bg-[#181820] border border-white/10 rounded-2xl flex flex-col items-center justify-center min-h-[90px]">
+                                <AudioRecorder onRecordingComplete={(blob) => setAudioBlob(blob)} />
+                                <p className="text-[10px] text-slate-500 mt-1.5 text-center">Record a short greeting like "Hello Dad, it's Rahul!"</p>
+                            </div>
                         </div>
                     )}
 
-                    {/* Footer Actions */}
-                    <div className="pt-4 border-t border-white/5">
+                    {/* Actions */}
+                    <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/5">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            disabled={status === 'submitting'}
+                            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-colors"
+                        >
+                            Cancel
+                        </button>
                         <button
                             type="submit"
-                            disabled={isSubmitting}
-                            className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
-                                ${isPerson
-                                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-500/25'
-                                    : 'bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-orange-500/25'
-                                }`}
+                            disabled={status === 'submitting'}
+                            className="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-violet-600/30 transition-all disabled:opacity-50 flex items-center gap-2"
                         >
-                            {isSubmitting ? (
-                                <span className="animate-pulse">Creating Memory...</span>
+                            {status === 'submitting' ? (
+                                <>
+                                    <RefreshCw size={14} className="animate-spin" />
+                                    <span>Saving to Memory Bank...</span>
+                                </>
                             ) : (
                                 <>
-                                    <Save size={20} />
-                                    {isPerson ? "Save Person & Create Avatar" : "Save Object"}
+                                    <UserPlus size={14} />
+                                    <span>Save to Memory Bank</span>
                                 </>
                             )}
                         </button>
                     </div>
                 </form>
-            ) : (
-                <div className="avatar-result flex flex-col items-center justify-center h-[400px] animate-in fade-in zoom-in duration-300">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-green-500/20 blur-xl rounded-full"></div>
-                        <img
-                            src={avatarUrl}
-                            alt="Generated Avatar"
-                            className="w-48 h-48 rounded-full object-cover border-4 border-green-500 shadow-2xl relative z-10"
-                        />
-                        <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2 rounded-full z-20 shadow-lg">
-                            <ImageIcon size={20} />
-                        </div>
-                    </div>
-                    <h4 className="text-2xl font-bold text-white mt-6 mb-2">Success!</h4>
-                    <p className="text-slate-400 text-center mb-8 max-w-xs">
-                        {isPerson
-                            ? `${name} has been added to your social circle.`
-                            : `${name} is now tracked in your inventory.`
-                        }
-                    </p>
-                    <button onClick={onCancel} className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors w-full">
-                        Return to Chat
-                    </button>
-                </div>
-            )}
-
-            <style>{`
-                .enrollment-container {
-                    background: #0f172a; /* Slate 900 */
-                    height: 100%;
-                    padding: 24px;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .close-btn { 
-                    background: rgba(255,255,255,0.05); 
-                    border: none; 
-                    color: #94a3b8; 
-                    cursor: pointer; 
-                    padding: 8px;
-                    border-radius: 50%;
-                    transition: 0.2s;
-                }
-                .close-btn:hover { background: rgba(255,255,255,0.1); color: white; transform: rotate(90deg); }
-                
-                /* Custom Scrollbar for form if needed */
-                .enrollment-container::-webkit-scrollbar { width: 4px; }
-                .enrollment-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-            `}</style>
+            </div>
         </div>
     );
 }

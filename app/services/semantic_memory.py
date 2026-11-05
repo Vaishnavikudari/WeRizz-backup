@@ -1,4 +1,6 @@
-
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct, Filter, FieldCondition, MatchValue
 from sentence_transformers import SentenceTransformer
@@ -12,7 +14,8 @@ class SemanticMemoryService:
         self.encoder = SentenceTransformer('all-MiniLM-L6-v2') 
         
         if settings.QDRANT_MODE == "local":
-            self.client = QdrantClient(path=settings.QDRANT_PATH)
+            from app.services.memory_service import memory_service
+            self.client = memory_service.client
         else:
             self.client = QdrantClient(
                 url=settings.get_qdrant_url(),
@@ -42,6 +45,21 @@ class SemanticMemoryService:
         except Exception as e:
             # Index might already exist
             print(f"Index creation note: {e}")
+
+    def clear_all(self):
+        """Clears all semantic text memories."""
+        try:
+            self.client.recreate_collection(
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+            )
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="name",
+                field_schema="keyword"
+            )
+        except Exception as e:
+            print(f"Error resetting semantic collection: {e}")
 
     def learn_person(self, person_data: dict):
         """
@@ -104,7 +122,9 @@ class SemanticMemoryService:
             limit=limit
         )
         
-        return [match.payload for match in res.points]
+        # Only return matches that satisfy high semantic similarity threshold (>= 0.52)
+        valid_points = [match.payload for match in res.points if getattr(match, 'score', 0) >= 0.52]
+        return valid_points
 
 # Global Instance (Lazy load might be better to avoid startup lag, but simplified here)
 semantic_memory = SemanticMemoryService()

@@ -1,0 +1,43 @@
+# API Keys & Sensitive Secrets
+.env
+.env.*
+*.env
+*.key
+credentials.json
+token.json
+
+# Python Virtual Environments & Bytecode
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Node & Build Artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Storage & Temporary Database Files
+qdrant_storage/
+qdrant_storage_*/
+*.lock
+temp_uploads/
+photo/
+audio/
+*.sqlite
+storage.sqlite
+tunnel_out.txt
+
+# Large binary files & weights
+.keras-facenet/
+yolov8n.pt
+*.pt
+model.glb
+frontend/public/model.glb
+frontend/dist/model.glb
+
+# OS Files
+.DS_Store
+Thumbs.db

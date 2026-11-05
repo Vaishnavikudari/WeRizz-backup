@@ -1,5 +1,7 @@
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Form, Response
+from pydantic import BaseModel
+from typing import Optional
 from app.services.face_service import face_service
 from app.services.object_service import detector as object_service
 from app.services.memory_service import memory_service
@@ -13,6 +15,11 @@ from PIL import Image
 import io
 
 router = APIRouter()
+
+@router.get('/health')
+def api_health():
+    return {'status': 'ok', 'service': 'v1'}
+
 
 TEMP_DIR = Path("temp_uploads")
 TEMP_DIR.mkdir(exist_ok=True)
@@ -62,7 +69,10 @@ async def recognize_person(background_tasks: BackgroundTasks, file: UploadFile =
         if matches:
              best_match = matches[0]
              # Check threshold (Cosine Similarity > 0.4 implies match)
-             if best_match.score > 0.4:
+             score = float(best_match.score)
+             name = best_match.payload.get('name', 'Unknown')
+             print(f"[RECOGNIZE] Best candidate: '{name}' with similarity: {score:.4f} (Required: >= 0.65)")
+             if score >= 0.65:
                  name = best_match.payload.get("name", "Unknown")
                  relation = best_match.payload.get("relation", "Unknown")
                  notes = best_match.payload.get("notes", "")
@@ -89,6 +99,8 @@ async def recognize_person(background_tasks: BackgroundTasks, file: UploadFile =
                      }
                  }
 
+             else:
+                 print(f"[RECOGNIZE] Score {score:.4f} is below 0.65 threshold. Rejecting as unknown person.")
         return {"status": "unknown", "person": None}
 
     except Exception as e:
@@ -165,10 +177,15 @@ async def remember_person(
             embedding=embedding,
             metadata=metadata
         )
+        try:
+            from app.services.semantic_memory import semantic_memory
+            semantic_memory.learn_person(metadata)
+        except Exception as sem_err:
+            print(f"Semantic memory note: {sem_err}")
         
         msg = f"I have enrolled {name}."
         
-        return {"status": "stored", "name": name, "avatar_url": avatar_url}
+        return {"status": "stored", "name": name, "avatar_url": avatar_url, "image_base64": img_b64}
         
     except Exception as e:
         if perm_path.exists():
@@ -240,6 +257,15 @@ async def remember_patient(
             embedding=embedding,
             metadata=metadata
         )
+        try:
+            from app.services.semantic_memory import semantic_memory
+            semantic_memory.add_knowledge(
+                text=f"{name} is the user's {relation}. {notes or ''}",
+                name=name,
+                metadata={"type": "person", "relation": relation, "image_base64": img_b64}
+            )
+        except Exception as e:
+            print(f"Error indexing person in semantic memory: {e}")
         
         return {"status": "stored", "name": name, "avatar_url": avatar_url}
         
@@ -252,7 +278,8 @@ async def remember_patient(
 async def remember_object(
     background_tasks: BackgroundTasks,
     name: str = Form(...),
-    notes: str = Form(None),
+    location: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
     file: UploadFile = File(...)
 ):
     """Register a new personal object (e.g. Medicine Box)"""
@@ -269,22 +296,33 @@ async def remember_object(
         # Encode
         img_b64 = encode_image_base64(str(temp_path))
 
-        # Store
+        loc = location or "Home"
+        combined_notes = f"Location: {loc}. {notes}" if notes else f"Location: {loc}."
+
+        # Store in Qdrant objects collection
         memory_service.store_object_memory(
             object_id=str(uuid.uuid4()),
             embedding=embedding,
             metadata={
                 "name": name,
                 "type": "object",
-                "notes": notes or f"This is your {name}.",
+                "location": loc,
+                "notes": combined_notes,
                 "image_base64": img_b64
             }
         )
         
-        msg = f"I have remembered your {name}."
-        # background_tasks.add_task(tts_service.speak, msg)
+        try:
+            from app.services.semantic_memory import semantic_memory
+            semantic_memory.add_knowledge(
+                text=f"{name} is a personal item. It is usually kept in {loc}. {notes or ''}",
+                name=name,
+                metadata={"type": "object", "location": loc, "image_base64": img_b64}
+            )
+        except Exception as e:
+            print(f"Error indexing object in semantic memory: {e}")
         
-        return {"status": "stored", "name": name}
+        return {"status": "stored", "name": name, "location": loc, "image_base64": img_b64}
         
     finally:
         if temp_path.exists():
@@ -402,3 +440,183 @@ async def debug_names():
         return {"count": len(names), "names": names}
     except Exception as e:
         return {"error": str(e)}
+
+
+class TTSRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = None
+    api_key: Optional[str] = None
+    language: Optional[str] = "en"
+
+@router.post("/tts")
+async def text_to_speech_post(req: TTSRequest):
+    audio_bytes = await tts_service.generate_audio(req.text, req.voice_id, req.api_key, language=req.language)
+    if not audio_bytes:
+        raise HTTPException(status_code=500, detail="Failed to synthesize speech")
+    return Response(content=audio_bytes, media_type="audio/mpeg")
+
+@router.get("/tts")
+async def text_to_speech_get(text: str, voice_id: Optional[str] = None, api_key: Optional[str] = None, language: Optional[str] = "en"):
+    audio_bytes = await tts_service.generate_audio(text, voice_id, api_key, language=language)
+    if not audio_bytes:
+        raise HTTPException(status_code=500, detail="Failed to synthesize speech")
+    return Response(content=audio_bytes, media_type="audio/mpeg")
+
+
+class SMSAlertRequest(BaseModel):
+    patient_name: Optional[str] = "Dad"
+    lat: float
+    lng: float
+    distance: int
+    address: Optional[str] = None
+    recipient_phone: Optional[str] = "+91 98765 43210 (Rahul)"
+
+@router.post("/alert/sms")
+async def send_emergency_sms(alert: SMSAlertRequest):
+    """Simulated real-time SMS Gateway trigger (Twilio / Fast2SMS / SMSCountry)"""
+    import time
+    google_maps_url = f"https://www.google.com/maps?q={alert.lat},{alert.lng}"
+    msg = (
+        f"EMERGENCY ALERT: {alert.patient_name} has reported feeling lost! "
+        f"Current GPS: ({alert.lat:.5f}, {alert.lng:.5f}) - {alert.distance}m from home. "
+        f"Live Map: {google_maps_url}"
+    )
+    print(f"[SMS GATEWAY] Sent to {alert.recipient_phone}: {msg}")
+    return {
+        "status": "sent",
+        "timestamp": time.strftime("%I:%M %p"),
+        "recipient": alert.recipient_phone,
+        "message": msg,
+        "maps_url": google_maps_url
+    }
+
+
+@router.post("/memory/clear")
+@router.delete("/memory/clear")
+async def clear_memory_endpoint():
+    """Wipes all enrolled people, faces, objects, and text knowledge."""
+    try:
+        from app.services.semantic_memory import semantic_memory
+        from app.services.conversation_service import conversation_service
+        memory_service.clear_all()
+        semantic_memory.clear_all()
+        conversation_service.clear_context()
+        
+        # Clear local photos & audios
+        if ENROLL_DIR.exists():
+            for f in ENROLL_DIR.iterdir():
+                if f.is_file(): f.unlink()
+        audio_dir = Path("audio/enrolled")
+        if audio_dir.exists():
+            for f in audio_dir.iterdir():
+                if f.is_file(): f.unlink()
+                
+        return {"status": "success", "message": "Memory is completely free. All enrolled people, faces, objects, and facts removed."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/people")
+@router.get("/enrolled/all")
+async def get_all_enrolled_people():
+    """Return list of all enrolled people and their details."""
+    try:
+        people = memory_service.get_all_people()
+        return {"status": "success", "count": len(people), "people": people}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/person/{identifier}")
+@router.delete("/enrolled/{identifier}")
+async def delete_enrolled_person(identifier: str):
+    """Manually remove an enrolled person by ID or name."""
+    try:
+        from app.services.conversation_service import conversation_service
+        result = memory_service.delete_person(identifier)
+        conversation_service.clear_context()
+        return {
+            "status": "success",
+            "message": f"Successfully removed {identifier} from memory bank.",
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/person/{identifier}")
+@router.post("/person/{identifier}/update")
+async def update_enrolled_person(
+    identifier: str,
+    name: Optional[str] = Form(None),
+    relation: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    age: Optional[int] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    audio_file: Optional[UploadFile] = File(None)
+):
+    """Update an enrolled person's information, photo, or voice recording."""
+    try:
+        from app.services.conversation_service import conversation_service
+        updates = {}
+        new_embedding = None
+
+        if name is not None and name.strip():
+            updates["name"] = name.strip()
+            updates["person_id"] = name.strip().replace(" ", "_")
+        if relation is not None:
+            updates["relation"] = relation.strip()
+        if notes is not None:
+            updates["notes"] = notes.strip()
+        if age is not None:
+            updates["age"] = age
+
+        # Handle new photo upload
+        if file and file.filename:
+            file_id = str(uuid.uuid4())
+            safe_name = (name or identifier).replace(" ", "_")
+            perm_path = ENROLL_DIR / f"{safe_name}_{file_id}.jpg"
+            try:
+                with open(perm_path, "wb") as buffer:
+                    shutil.copyfileobj(file.file, buffer)
+
+                embedding = face_service.generate_embedding(str(perm_path))
+                if embedding:
+                    new_embedding = embedding
+                    img_b64 = encode_image_base64(str(perm_path))
+                    updates["image_base64"] = img_b64
+                    try:
+                        from app.services.avatar_service import avatar_service
+                        avatar_url = avatar_service.generate_avatar(str(perm_path))
+                        if avatar_url:
+                            updates["avatar_url"] = avatar_url
+                    except Exception as av_err:
+                        print(f"Avatar update note: {av_err}")
+                else:
+                    print(f"Warning: No face detected in updated photo for {identifier}")
+            except Exception as fe:
+                print(f"Error processing updated photo: {fe}")
+
+        # Handle new voice recording upload
+        if audio_file and audio_file.filename:
+            file_id = str(uuid.uuid4())
+            safe_name = (name or identifier).replace(" ", "_")
+            audio_path = Path("audio/enrolled") / f"{safe_name}_{file_id}.webm"
+            audio_path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                with open(audio_path, "wb") as buffer:
+                    shutil.copyfileobj(audio_file.file, buffer)
+                with open(audio_path, "rb") as f:
+                    audio_b64 = base64.b64encode(f.read()).decode("utf-8")
+                updates["audio_base64"] = audio_b64
+            except Exception as ae:
+                print(f"Error saving updated audio: {ae}")
+
+        result = memory_service.update_person(identifier, updates, new_embedding=new_embedding)
+        conversation_service.clear_context()
+
+        return {
+            "status": "success",
+            "message": f"Successfully updated {identifier} in memory bank.",
+            "updates": {k: v for k, v in updates.items() if k not in ["image_base64", "audio_base64"]},
+            **result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

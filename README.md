@@ -1,6 +1,6 @@
-# Masthishq (Convolve) - AI Memory Assistant
+# MAVORA (Convolve) - AI Memory Assistant
 
-Masthishq is a multimodal AI agent designed to act as an external memory for patients with Alzheimer's and Dementia. It uses Face Recognition, Vector Search (Qdrant), and LLMs (Llama 3 via Groq) to identify people, objects, and provide context-aware conversations.
+MAVORA is a multimodal AI agent designed to act as an external memory for patients with Alzheimer's and Dementia. It uses Face Recognition, Vector Search (Qdrant), and LLMs (Llama 3 via Groq) to identify people, objects, and provide context-aware conversations.
 
 ## 🚀 Prerequisites
 
@@ -18,8 +18,8 @@ Before running the project, ensure you have the following installed:
 ### 1. clone the Repository
 
 ```bash
-git clone https://github.com/krishk2/Masthishq.git
-cd Masthishq
+git clone https://github.com/krishk2/MAVORA.git
+cd MAVORA
 ```
 
 ### 2. Backend Setup (FastAPI)

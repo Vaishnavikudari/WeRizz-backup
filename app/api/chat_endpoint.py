@@ -1,152 +1,277 @@
-
 from fastapi import APIRouter, Body
 from app.services.conversation_service import conversation_service
 from app.services.semantic_memory import semantic_memory
 from app.services.memory_service import memory_service
 from app.services.llm_service import llm_service
+import re
 
 router = APIRouter()
 
+MEDICINE_KEYWORDS = [
+    "medicine", "medicines", "medication", "medications", "pill", "pills", 
+    "tablet", "tablets", "dose", "dosage", "prescription", "take medicine",
+    "drugs", "pharma",
+    # Kannada
+    "ಔಷಧ", "ಔಷಧಿ", "ಮಾತ್ರೆ", "ಮಾತ್ರೆಗಳು", "ಗುಳಿಗೆ",
+    # Hindi
+    "दवा", "दवाई", "दवाएं", "दवाइयां", "गोली", "गोलियां", "खुराक"
+]
+
+SCHEDULE_KEYWORDS = [
+    "schedule", "routine", "today's plan", "today plan", "what to do today", 
+    "my day", "what should i do", "daily plan", "calendar", "agenda",
+    # Kannada
+    "ದಿನಚರಿ", "ವೇಳಾಪಟ್ಟಿ", "ಇಂದಿನ ಯೋಜನೆ", "ಕಾರ್ಯಕ್ರಮ",
+    # Hindi
+    "दिनचर्या", "शेड्यूल", "आज का प्लान", "आज क्या करना है", "कार्यसूची"
+]
+
+def format_medicines_response(schedule_items: list, language: str) -> str:
+    """Format medication reminders from shared schedule into warm, clear multi-language text."""
+    med_items = []
+    for item in schedule_items:
+        text_corpus = f"{item.get('title', '')} {item.get('description', '')} {item.get('notes', '')} {item.get('category', '')}".lower()
+        if any(k in text_corpus for k in ["pill", "tablet", "medicine", "med", "dose", "pressure", "vitamin", "donepezil", "amlodipine", "ಮಾತ್ರೆ", "ಔಷಧ", "दवा", "गोली"]):
+            med_items.append(item)
+    
+    # If no specific med filter matched but items exist, show scheduled items that have times
+    if not med_items and schedule_items:
+        med_items = schedule_items
+
+    if not med_items:
+        if language == "kn":
+            return "ಸ್ಮೃತಿಯಲ್ಲಿ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ."
+        elif language == "hi":
+            return "स्मृति में जानकारी उपलब्ध नहीं है।"
+        else:
+            return "Information not available in memory."
+
+    if language == "kn":
+        lines = ["ಇಂದಿನ ನಿಮ್ಮ ನಿಗದಿತ ಔಷಧಗಳು ಹೀಗಿವೆ:"]
+        for it in med_items:
+            time_str = it.get("time", "")
+            title = it.get("title", "")
+            desc = it.get("description", "")
+            lines.append(f"• {time_str}: {title}" + (f" - {desc}" if desc else ""))
+        lines.append("\nದಯವಿಟ್ಟು ಊಟದ ನಂತರ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ನೀರಿನೊಂದಿಗೆ ತೆಗೆದುಕೊಳ್ಳಿ!")
+        return "\n".join(lines)
+    elif language == "hi":
+        lines = ["आज की आपकी निर्धारित दवाएं इस प्रकार हैं:"]
+        for it in med_items:
+            time_str = it.get("time", "")
+            title = it.get("title", "")
+            desc = it.get("description", "")
+            lines.append(f"• {time_str}: {title}" + (f" - {desc}" if desc else ""))
+        lines.append("\nकृपया भोजन के बाद समय पर पानी के साथ दवाएं लें!")
+        return "\n".join(lines)
+    else:
+        lines = ["Here are your scheduled medicines for today:"]
+        for it in med_items:
+            time_str = it.get("time", "")
+            title = it.get("title", "")
+            desc = it.get("description", "")
+            lines.append(f"• {time_str}: {title}" + (f" - {desc}" if desc else ""))
+        lines.append("\nPlease remember to take them on time with water after meals!")
+        return "\n".join(lines)
+
+def format_schedule_response(schedule_items: list, language: str) -> str:
+    """Format daily schedule into structured readable text."""
+    if not schedule_items:
+        if language == "kn":
+            return "ಸ್ಮೃತಿಯಲ್ಲಿ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ."
+        elif language == "hi":
+            return "स्मृति में जानकारी उपलब्ध नहीं है।"
+        else:
+            return "Information not available in memory."
+
+    if language == "kn":
+        lines = ["ಇಂದಿನ ನಿಮ್ಮ ದಿನಚರಿ ಮತ್ತು ವೇಳಾಪಟ್ಟಿ ಹೀಗಿದೆ:"]
+        for it in schedule_items:
+            lines.append(f"• {it.get('time', '')}: {it.get('title', '')} ({it.get('description', '')})")
+        return "\n".join(lines)
+    elif language == "hi":
+        lines = ["आज की आपकी दिनचर्या और शेड्यूल:"]
+        for it in schedule_items:
+            lines.append(f"• {it.get('time', '')}: {it.get('title', '')} ({it.get('description', '')})")
+        return "\n".join(lines)
+    else:
+        lines = ["Here is your schedule for today:"]
+        for it in schedule_items:
+            lines.append(f"• {it.get('time', '')}: {it.get('title', '')} ({it.get('description', '')})")
+        return "\n".join(lines)
+
+
 @router.post("/chat/query")
-async def chat_query(text: str = Body(..., embed=True)):
-    """
-    Process a text query.
-    Uses Semantic Vector Search + Server-Side Context.
-    """
-    text = text.strip()
+async def chat_query(payload: dict = Body(...)):
+    text = payload.get("text", "").strip()
+    language = payload.get("language", "en")
+    schedule = payload.get("schedule", [])
+    
+    # Auto-detect language from script if text contains Kannada or Devanagari characters
+    if any(0x0C80 <= ord(char) <= 0x0CFF for char in text):
+        language = "kn"
+    elif any(0x0900 <= ord(char) <= 0x097F for char in text):
+        language = "hi" 
+    
+    if not text:
+        return {
+            "status": "not_available",
+            "text": "Information not available in memory." if language == "en" else ("ಸ್ಮೃತಿಯಲ್ಲಿ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ." if language == "kn" else "स्मृति में जानकारी उपलब्ध नहीं है।"),
+            "person": None,
+            "image_base64": None,
+            "audio_base64": None,
+            "gallery": []
+        }
+
     lower_text = text.lower()
     
-    # 1. Retrieve Context
+    # -------------------------------------------------------------
+    # 1. SPECIAL INTENT: MEDICINE & PRESCRIPTION CHECK
+    # -------------------------------------------------------------
+    if any(k in lower_text for k in MEDICINE_KEYWORDS):
+        print(f"[chat_query] Detected medicine query: '{text}'")
+        formatted = format_medicines_response(schedule, language)
+        return {
+            "status": "found" if formatted != "Information not available in memory." and "ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ" not in formatted and "जानकारी उपलब्ध नहीं" not in formatted else "not_available",
+            "text": formatted,
+            "person": None,
+            "image_base64": None,
+            "audio_base64": None,
+            "gallery": []
+        }
+
+    # -------------------------------------------------------------
+    # 2. SPECIAL INTENT: DAILY ROUTINE / SCHEDULE CHECK
+    # -------------------------------------------------------------
+    if any(k in lower_text for k in SCHEDULE_KEYWORDS):
+        print(f"[chat_query] Detected schedule query: '{text}'")
+        formatted = format_schedule_response(schedule, language)
+        return {
+            "status": "found" if formatted != "Information not available in memory." and "ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ" not in formatted and "जानकारी उपलब्ध नहीं" not in formatted else "not_available",
+            "text": formatted,
+            "person": None,
+            "image_base64": None,
+            "audio_base64": None,
+            "gallery": []
+        }
+
+    # -------------------------------------------------------------
+    # 3. CONTEXT & PRONOUN HANDLING
+    # -------------------------------------------------------------
     context = conversation_service.get_context()
     context_name = context.get("name") if context else None
     
-    # 2. Check for Follow-up ("he", "she", "where", "look")
-    pronouns = ["he", "she", "him", "her", "it", "his", "her", "live", "do", "does", "about", "look", "features"]
+    pronouns = ["he", "she", "him", "her", "it", "his", "live", "do", "does", "about", "look", "features"]
     is_followup = any(p in lower_text.split() for p in pronouns)
     
     matches = []
     
-    # SAFETY: If user says "He" but we don't know who "He" is (Context is None)
-    if is_followup and not context_name and "who is" not in lower_text:
-         return {
-             "status": "unknown",
-             "text": "I'm not sure who you are referring to. Who are we talking about?"
-         }
-    
-    
-    # 0. Direct Entity Search (Person/Object Name)
+    # 0. Direct Entity Search (Person/Object Name with strict match)
     entity_matches = memory_service.search_by_text(text)
     if entity_matches:
-        # High confidence match on name
         print(f"Direct Entity Match: {entity_matches[0].payload.get('name')}")
-        payload = entity_matches[0].payload
-        name = payload.get("name")
-        # Construct text using LLM
-        desc = llm_service.generate_response(user_text=text, context=payload)
-        matches = [{"name": name, "text": desc, "score": 1.0, "payload": payload}]
+        entity_payload = entity_matches[0].payload
+        name = entity_payload.get("name")
+        desc = llm_service.generate_response(user_text=text, context=entity_payload, language=language)
+        matches = [{"name": name, "text": desc, "score": 1.0, "payload": entity_payload}]
     elif context_name and is_followup and "who is" not in lower_text:
-        # Contextual Search: Filter by current person
-        # e.g. "How does he look?" -> Search "How does he look" filtered by name="Emraan"
         print(f"Context Search for {context_name}: {text}")
         matches = semantic_memory.search_knowledge(text, context_name=context_name)
     else:
-        # Global Search
-        # e.g. "Who is Emraan?" or "Find the doctor"
-        print(f"Global Search: {text}")
+        print(f"Global Semantic Search: {text}")
         matches = semantic_memory.search_knowledge(text)
     
-    if matches:
-        best_match = matches[0] # Payload from semantic memory (Text only)
-        text_content = best_match.get("text") or f"I found a memory about {best_match.get('name', 'them')}."
-        name = best_match.get("name")
-        
-        full_person = None
-        audio_base64 = None
-        image_base64 = None
-        original_matches = []
-        
-        if name:
-             # Update: Always search to get Gallery/Duplicates
-             original_matches = memory_service.search_by_text(name)
-             if original_matches:
-                 full_person = original_matches[0].payload
-                 
-                 # MERGING: Scan all matches to find Audio/Image if missing in top match
-                 for m in original_matches:
-                     if not audio_base64 and m.payload.get("audio_base64"):
-                         audio_base64 = m.payload.get("audio_base64")
-                     if not image_base64 and m.payload.get("image_base64"):
-                         image_base64 = m.payload.get("image_base64")
-             else:
-                  # Fallback if search fails but name exists (rare)
-                  full_person = matches[0].get("payload")
-             
-             if full_person:
-                 if not audio_base64: audio_base64 = full_person.get("audio_base64")
-                 if not image_base64: image_base64 = full_person.get("image_base64")
-                 
-                 # Handle Object Location response
-                 if full_person.get("type") == "object":
-                     location = full_person.get("location", "unknown place")
-                     # text_content is now generated by LLM below
-
-        # Update Context
-        if full_person:
-            conversation_service.update_context(full_person)
+    # If no confident match found, return "Information not available in memory."
+    if not matches:
+        if language == "kn":
+            not_avail = "ಸ್ಮೃತಿಯಲ್ಲಿ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ."
+        elif language == "hi":
+            not_avail = "स्मृति में जानकारी उपलब्ध नहीं है।"
         else:
-             conversation_service.update_context(best_match)
-        
-        # Prepare context for LLM
-        llm_context = full_person if full_person else best_match
-        if llm_context:
-            llm_context["has_audio"] = bool(audio_base64)
-            llm_context["has_image"] = bool(image_base64)
-
-        # Generate Response via LLM
-        final_text = llm_service.generate_response(user_text=text, context=llm_context)
-
-        # Build Gallery (Always helpful for identity)
-        gallery = []
-        if original_matches:
-             seen_imgs = set()
-             for m in original_matches:
-                 img = m.payload.get("image_base64")
-                 if img and len(img) > 100 and img not in seen_imgs:
-                     gallery.append(img)
-                     seen_imgs.add(img)
-             gallery = gallery[:6]
-
-        # Intent Filtering
-        # Only send audio if user specifically asks for it
-        voice_keywords = ["voice", "talk", "speak", "sound", "listen", "hear"]
-        voice_intent = any(k in text.lower() for k in voice_keywords)
-        final_audio = audio_base64 if voice_intent else None
-
-        # Only send gallery if user specifically asks for it
-        gallery_keywords = ["memories", "photos", "pictures", "images", "gallery", "album", "see", "look"]
-        gallery_intent = any(k in text.lower() for k in gallery_keywords)
-        final_gallery = gallery if gallery_intent else []
-
-        # SERVER-SIDE TTS (Pygame) - DISABLED (User Request: Web Voice Only)
-        # try:
-        #     from app.services.tts_service import tts_service
-        #     import asyncio
-        #     asyncio.create_task(tts_service.speak(final_text))
-        # except Exception as e:
-        #     print(f"TTS Trigger Failed: {e}")
-
-        response_data = {
-            "status": "found",
-            "text": final_text,
-            "person": full_person if full_person else best_match,
-            "audio_base64": final_audio,
-            "image_base64": image_base64,
-            "gallery": final_gallery
+            not_avail = "Information not available in memory."
+        return {
+            "status": "not_available",
+            "text": not_avail,
+            "person": None,
+            "image_base64": None,
+            "audio_base64": None,
+            "gallery": []
         }
-        print(f"DEBUG RESPONSE: IntentVoice={voice_intent} IntentGallery={gallery_intent} Audio={bool(final_audio)} Gallery={len(final_gallery)}")
-        return response_data
+
+    best_match = matches[0]
+    name = best_match.get("name")
+    
+    full_person = None
+    audio_base64 = None
+    image_base64 = None
+    original_matches = []
+    
+    if name:
+        original_matches = memory_service.search_by_text(name)
+        if original_matches:
+            full_person = original_matches[0].payload
+            for m in original_matches:
+                if not audio_base64 and m.payload.get("audio_base64"):
+                    audio_base64 = m.payload.get("audio_base64")
+                if not image_base64 and m.payload.get("image_base64"):
+                    image_base64 = m.payload.get("image_base64")
+        else:
+            full_person = best_match.get("payload")
+        
+        if full_person:
+            if not audio_base64: audio_base64 = full_person.get("audio_base64")
+            if not image_base64: image_base64 = full_person.get("image_base64")
+
+    # Update context only when we have a legitimate person/object
+    if full_person:
+        conversation_service.update_context(full_person)
+    else:
+        conversation_service.update_context(best_match)
+
+    llm_context = full_person if full_person else best_match
+    if llm_context:
+        llm_context["has_audio"] = bool(audio_base64)
+        llm_context["has_image"] = bool(image_base64)
+
+    final_text = llm_service.generate_response(user_text=text, context=llm_context, language=language)
+
+    # Sanity check on LLM response: if it says it doesn't know or lacks info, DO NOT attach photo
+    negative_indicators = [
+        "information not available", "not available in memory", 
+        "don't have", "do not have", "cannot find", "couldn't find",
+        "ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ", "ನೆನಪಿನಲ್ಲಿಲ್ಲ", "ತಿಳಿದಿಲ್ಲ",
+        "जानकारी उपलब्ध नहीं", "याद में नहीं", "पता नहीं"
+    ]
+    is_negative = any(ind in final_text.lower() for ind in negative_indicators)
+
+    # Build gallery if requested
+    gallery = []
+    if original_matches and not is_negative:
+        seen_imgs = set()
+        for m in original_matches:
+            img = m.payload.get("image_base64")
+            if img and len(img) > 100 and img not in seen_imgs:
+                gallery.append(img)
+                seen_imgs.add(img)
+        gallery = gallery[:6]
+
+    voice_keywords = ["voice", "talk", "speak", "sound", "listen", "hear", "ಧ್ವನಿ", "ಮಾತು", "ಆವಾಜ್", "आवाज़", "बोल"]
+    voice_intent = any(k in lower_text for k in voice_keywords)
+    final_audio = audio_base64 if (voice_intent and not is_negative) else None
+
+    gallery_keywords = ["memories", "photos", "pictures", "images", "gallery", "album", "see", "look", "ಫೋಟೋ", "ಚಿತ್ರ", "तस्वीर", "फोटो"]
+    gallery_intent = any(k in lower_text for k in gallery_keywords)
+    final_gallery = gallery if (gallery_intent and not is_negative) else []
+
+    # Only return person & image if it wasn't a negative response and actually queried
+    ret_person = full_person if (full_person and not is_negative) else None
+    ret_image = image_base64 if (not is_negative) else None
 
     return {
-        "status": "unknown",
-        "text": "I couldn't find anything relevant in my memory."
+        "status": "found" if not is_negative else "not_available",
+        "text": final_text,
+        "person": ret_person,
+        "audio_base64": final_audio,
+        "image_base64": ret_image,
+        "gallery": final_gallery
     }
