@@ -171,17 +171,23 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                         <div className="p-2.5 rounded-xl border border-white/10 bg-zinc-950 text-zinc-300">
                             {isPatient ? <Compass size={24} /> : <ShieldCheck size={24} />}
                         </div>
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                        <div className="flex flex-col">
+                            <span className="font-mono text-[10px] uppercase tracking-wider text-[#8d8d92]">
+                                {isPatient ? "Patient Safety Space" : "Caregiver Radar"}
+                            </span>
+                            <h1 
+                                className="font-serif text-2xl sm:text-3xl text-[#f4f4f2] tracking-[-0.025em] leading-tight"
+                                style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}
+                            >
                                 {isPatient ? (
-                                    <>Patient Live Location & <span className="font-editorial italic font-normal text-zinc-200">Safety Guide</span></>
+                                    <>Live location & <span className="italic text-[#9b8afb]">safety guide</span></>
                                 ) : (
-                                    <>Family GPS Tracker & <span className="font-editorial italic font-normal text-zinc-200">Safety Geofence</span></>
+                                    <>Family GPS & <span className="italic text-[#9b8afb]">safety geofence</span></>
                                 )}
                             </h1>
-                            <p className="font-handwritten text-lg text-zinc-400 mt-0.5">
+                            <p className="text-[#8d8d92] text-xs sm:text-sm mt-0.5">
                                 {isPatient 
-                                    ? "“You are safe, loved, and always guided back home.”" 
+                                    ? "Mavora is watching over your steps. You can walk back home anytime." 
                                     : "Real-time location monitoring and autonomous wandering alerts."}
                             </p>
                         </div>
@@ -333,15 +339,18 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                     {isPatient && (
                         <div className="bg-[#0b0b0e] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col justify-between h-full space-y-6">
                             <div>
-                                <div className="flex items-center gap-2 text-zinc-400 mb-2">
-                                    <Compass size={20} />
-                                    <span className="font-mono font-bold text-xs tracking-wider uppercase">Patient Assistance</span>
+                                <div className="flex items-center gap-2 text-[#8d8d92] mb-2">
+                                    <Compass size={16} />
+                                    <span className="font-mono text-[10px] tracking-wider uppercase">Patient Assistance</span>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">
-                                    Are you feeling lost?
+                                <h3 
+                                    className="font-serif text-2xl text-[#f4f4f2] mb-2"
+                                    style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}
+                                >
+                                    Are you feeling <span className="italic text-[#9b8afb]">lost?</span>
                                 </h3>
-                                <p className="font-handwritten text-2xl text-zinc-300 leading-relaxed">
-                                    “Don't worry. Your family is aware and you are completely safe. Tap below anytime to walk back together.”
+                                <p className="text-[#8d8d92] text-sm leading-[1.6]">
+                                    Don't worry. Your family is aware and you are completely safe. Tap below anytime and we will walk back home together.
                                 </p>
                             </div>
 

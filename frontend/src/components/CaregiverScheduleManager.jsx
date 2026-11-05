@@ -93,12 +93,13 @@ const CaregiverScheduleManager = () => {
                 <div>
                     <div className="flex items-center gap-2 text-zinc-300">
                         <Pill size={20} />
-                        <h2 className="text-xl font-bold text-white tracking-tight">
-                            Medication & Daily Routine <span className="font-editorial italic font-normal text-zinc-200">Management</span>
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#8d8d92] block mb-1">Caregiver routines</span>
+                        <h2 className="font-serif text-2xl sm:text-3xl text-[#f4f4f2] tracking-[-0.025em] leading-tight" style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}>
+                            Medication & daily <span className="italic text-[#9b8afb]">routines</span>
                         </h2>
                     </div>
-                    <p className="font-handwritten text-xl text-zinc-400 mt-0.5">
-                        “Carefully scheduled reminders synchronize with their screen in real time.”
+                    <p className="text-[#8d8d92] text-xs sm:text-sm mt-0.5">
+                        Carefully scheduled reminders synchronize with their screen in real time.
                     </p>
                 </div>
 

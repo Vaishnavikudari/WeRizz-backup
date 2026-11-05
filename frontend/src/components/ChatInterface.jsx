@@ -152,28 +152,31 @@ function ChatInterface({
 
     return (
         <div className="flex flex-col h-full w-full bg-[#000000] border-l border-white/10 relative">
-            {/* Header with Cursive Subtitle & Minimalist Language Segmented Control */}
-            <div className="p-3.5 px-6 border-b border-white/10 flex items-center justify-between bg-[#08080a] sticky top-0 z-10 flex-shrink-0">
-                <div className="flex items-center gap-2.5">
-                    <Sparkles className="text-zinc-300" size={16} />
-                    <div className="flex items-baseline gap-2">
-                        <h2 className="font-bold text-white text-xs tracking-wider uppercase font-mono">
+            {/* Header with The Seasons & Instrument Serif Typography */}
+            <div className="p-3.5 px-6 border-b border-white/10 flex items-center justify-between bg-[#121214] sticky top-0 z-10 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <Sparkles className="text-[#9b8afb]" size={16} />
+                    <div className="flex flex-col">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#8d8d92]">
                             Voice & Memory Assistant
-                        </h2>
-                        <span className="font-handwritten text-lg text-zinc-400 normal-case hidden sm:inline">
-                            “always here beside you”
                         </span>
+                        <h2 
+                            className="font-serif text-base text-[#f4f4f2] tracking-[-0.02em] leading-none"
+                            style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}
+                        >
+                            Your gentle <span className="italic text-[#9b8afb]">companion</span>
+                        </h2>
                     </div>
                 </div>
 
                 {/* Minimalist 3 Languages Segmented Switcher */}
-                <div className="flex items-center gap-1 bg-zinc-950 border border-white/10 p-1 rounded-xl">
+                <div className="flex items-center gap-1 bg-[#0b0b0c] border border-white/10 p-1 rounded-xl">
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('en')}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             activeLanguage === 'en'
-                                ? 'bg-white text-black shadow-sm'
-                                : 'text-zinc-400 hover:text-white'
+                                ? 'bg-[#f4f4f2] text-[#0b0b0c] shadow-sm font-semibold'
+                                : 'text-[#8d8d92] hover:text-[#f4f4f2]'
                         }`}
                         title="English"
                     >
@@ -181,10 +184,10 @@ function ChatInterface({
                     </button>
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('kn')}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             activeLanguage === 'kn'
-                                ? 'bg-white text-black shadow-sm'
-                                : 'text-zinc-400 hover:text-white'
+                                ? 'bg-[#f4f4f2] text-[#0b0b0c] shadow-sm font-semibold'
+                                : 'text-[#8d8d92] hover:text-[#f4f4f2]'
                         }`}
                         title="ಕನ್ನಡ (Kannada)"
                     >
@@ -192,10 +195,10 @@ function ChatInterface({
                     </button>
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('hi')}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             activeLanguage === 'hi'
-                                ? 'bg-white text-black shadow-sm'
-                                : 'text-zinc-400 hover:text-white'
+                                ? 'bg-[#f4f4f2] text-[#0b0b0c] shadow-sm font-semibold'
+                                : 'text-[#8d8d92] hover:text-[#f4f4f2]'
                         }`}
                         title="हिन्दी (Hindi)"
                     >
@@ -211,8 +214,17 @@ function ChatInterface({
                         <div className="p-4 bg-zinc-900 border border-white/10 rounded-full mb-1">
                             <Sparkles size={28} className="text-zinc-300" />
                         </div>
-                        <p className="font-handwritten text-2xl text-zinc-300 text-center">
-                            {activeLanguage === 'kn' ? "“ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?”" : activeLanguage === 'hi' ? "“मैं आपकी क्या मदद कर सकता हूँ?”" : "“How can I assist you today?”"}
+                        <p 
+                            className="font-serif text-2xl text-[#f4f4f2] text-center"
+                            style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}
+                        >
+                            {activeLanguage === 'kn' ? (
+                                <>ನಾನು ನಿಮಗೆ ಹೇಗೆ <span className="italic text-[#9b8afb]">ಸಹಾಯ ಮಾಡಲಿ?</span></>
+                            ) : activeLanguage === 'hi' ? (
+                                <>मैं आपकी क्या <span className="italic text-[#9b8afb]">मदद कर सकता हूँ?</span></>
+                            ) : (
+                                <>How can I <span className="italic text-[#9b8afb]">assist you today?</span></>
+                            )}
                         </p>
                     </div>
                 )}

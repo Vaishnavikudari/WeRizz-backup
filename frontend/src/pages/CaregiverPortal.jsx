@@ -303,15 +303,17 @@ const CaregiverPortal = () => {
             {/* Top Caregiver Header */}
             <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                 <div>
-                    <div className="flex items-center gap-2 text-zinc-300 mb-1">
-                        <ShieldCheck size={18} />
-                        <span className="text-[11px] font-bold uppercase tracking-wider">Caretaker & Family Control Panel</span>
-                    </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                        Caregiver Management <span className="font-editorial italic font-normal text-zinc-200">Portal</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#8d8d92] mb-2 block">
+                        Caretaker & family control panel
+                    </span>
+                    <h1 
+                        className="font-serif text-3xl sm:text-4xl text-[#f4f4f2] tracking-[-0.025em] leading-[1.08] mb-2"
+                        style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}
+                    >
+                        Caregiver management <span className="italic text-[#9b8afb]">portal</span>
                     </h1>
-                    <p className="font-handwritten text-xl text-zinc-400 mt-1">
-                        “Compassionate biometric memory care and daily reassurance for your loved one.”
+                    <p className="text-[#8d8d92] text-sm leading-[1.6]">
+                        Manage enrolled loved ones, inspect biometric memory, and schedule medication routines.
                     </p>
                 </div>
 

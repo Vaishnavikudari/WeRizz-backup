@@ -148,9 +148,9 @@ const EnrolledMemoryBankView = ({ onBack, onEnrollNew, onSpeakText }) => {
     });
 
     return (
-        <div className="flex flex-col h-full w-full bg-slate-900/60 backdrop-blur-xl border-l border-white/5 relative overflow-y-auto">
+        <div className="flex flex-col h-full w-full bg-[#0b0b0c] backdrop-blur-xl border-l border-white/5 relative overflow-y-auto">
             {/* Header */}
-            <div className="p-3.5 px-6 border-b border-white/5 flex items-center justify-between bg-slate-900/90 sticky top-0 z-10 flex-shrink-0">
+            <div className="p-3.5 px-6 border-b border-white/5 flex items-center justify-between bg-[#121214] sticky top-0 z-10 flex-shrink-0">
                 <div className="flex items-center gap-3">
                     {onBack && (
                         <button
@@ -162,21 +162,19 @@ const EnrolledMemoryBankView = ({ onBack, onEnrollNew, onSpeakText }) => {
                         </button>
                     )}
                     <div className="flex items-center gap-2">
-                        <Users className="text-indigo-400" size={18} />
-                        <h2 className="font-bold text-slate-200 text-xs tracking-wider uppercase">
-                            Enrolled Memory Bank
-                        </h2>
+                        <Users className="text-[#9b8afb]" size={18} />
+                        <div className="flex flex-col"><span className="font-mono text-[10px] uppercase tracking-wider text-[#8d8d92]">Biometric archive</span><h2 className="font-serif text-base text-[#f4f4f2] tracking-[-0.02em]" style={{ fontFamily: '"The Seasons", "Instrument Serif", Georgia, serif' }}>Enrolled <span className="italic text-[#9b8afb]">memory bank</span></h2></div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-900/30 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-semibold text-[#8d8d92] bg-[#0b0b0c] border border-white/10 font-mono px-2.5 py-0.5 rounded-full">
                         {people.length} {people.length === 1 ? 'Person' : 'People'}
                     </span>
                     {onEnrollNew && (
                         <button
                             onClick={onEnrollNew}
-                            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+                            className="px-3 py-1.5 bg-[#f4f4f2] hover:bg-[#e2e2e0] text-[#0b0b0c] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
                         >
                             <UserPlus size={14} />
                             <span>Enroll New</span>
@@ -250,7 +248,7 @@ const EnrolledMemoryBankView = ({ onBack, onEnrollNew, onSpeakText }) => {
                         {onEnrollNew && !searchQuery && (
                             <button
                                 onClick={onEnrollNew}
-                                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer mt-2"
+                                className="px-4 py-2 bg-[#f4f4f2] hover:bg-[#e2e2e0] text-[#0b0b0c] text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer mt-2"
                             >
                                 <UserPlus size={14} />
                                 <span>Enroll First Person</span>
@@ -320,7 +318,7 @@ const EnrolledMemoryBankView = ({ onBack, onEnrollNew, onSpeakText }) => {
                                         </div>
 
                                         {person.notes && (
-                                            <div className="p-2.5 bg-slate-900/60 rounded-xl border border-white/5 mb-3">
+                                            <div className="p-2.5 bg-[#0b0b0c] rounded-xl border border-white/5 mb-3">
                                                 <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
                                                     "{person.notes}"
                                                 </p>

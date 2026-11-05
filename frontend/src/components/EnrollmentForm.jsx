@@ -209,7 +209,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                                 placeholder={isPerson ? "e.g. Rahul Sharma" : "e.g. Medicine Box, Keys"}
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                                className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                             />
                         </div>
 
@@ -221,7 +221,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                                     placeholder="e.g. Grandson / Daughter / Doctor"
                                     value={formData.relation}
                                     onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
-                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                                 />
                             </div>
                         ) : (
@@ -232,7 +232,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                                     placeholder="e.g. Bedside table / Living room shelf"
                                     value={formData.relation}
                                     onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
-                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                                    className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                                 />
                             </div>
                         )}
@@ -247,7 +247,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                             placeholder={isPerson ? "e.g. Loves acoustic guitar, visits on Sundays, brought jalebis last week." : "e.g. Blue plastic box with morning and night pill slots."}
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                            className="w-full mt-1 p-3 bg-[#181820] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                         />
                     </div>
 
