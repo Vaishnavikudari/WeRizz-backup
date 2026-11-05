@@ -2,8 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The Seasons Web Font */
+@font-face {
+  font-family: 'The Seasons';
+  src: url('/fonts/TheSeasons-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'The Seasons';
+  src: url('/fonts/TheSeasons-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
-  font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+  font-family: 'Montserrat', 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
@@ -22,15 +39,27 @@ body {
   height: 100vh;
   overflow: hidden;
   background-color: #000000;
+  font-family: 'Montserrat', 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-/* Custom Cursive Font Helper */
-.font-handwritten {
-  font-family: 'Caveat', cursive;
+/* Headings use The Seasons font pairing */
+h1, h2, h3, h4, .font-seasons, .font-editorial {
+  font-family: 'The Seasons', 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
-.font-editorial {
-  font-family: 'Playfair Display', Georgia, serif;
+/* Cursive / Calligraphic flourishes using The Seasons Italic */
+.font-handwritten, .font-cursive {
+  font-family: 'The Seasons', 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* Pairing subheadings (Beautifully Delicious style: clean wide-tracked sans) */
+.font-delicious, .tracking-delicious {
+  font-family: 'Montserrat', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 /* Sleek Minimal Scrollbar */

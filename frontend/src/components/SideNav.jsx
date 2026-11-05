@@ -143,19 +143,20 @@ const NavBar = ({ onViewChange, currentView, onOpenVoiceSettings }) => {
             user-select: none;
         }
         .brand-text {
-            font-size: 1.15rem;
+            font-family: 'The Seasons', 'Cormorant Garamond', 'Playfair Display', serif;
+            font-size: 1.35rem;
             font-weight: 600;
-            letter-spacing: -0.01em;
+            letter-spacing: 0.02em;
             color: #f4f4f2;
         }
         .mode-badge {
-            font-size: 0.68rem;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.65rem;
+            font-family: 'Montserrat', sans-serif;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: #8d8d92;
+            letter-spacing: 0.16em;
+            padding: 3px 9px;
+            border-radius: 9999px;
+            color: #a1a1aa;
             border: 1px solid rgba(244, 244, 242, 0.12);
             background: #141415;
         }
