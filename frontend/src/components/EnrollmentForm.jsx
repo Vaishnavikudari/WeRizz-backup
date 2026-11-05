@@ -283,7 +283,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                                     <button
                                         type="button"
                                         onClick={snapCameraPhoto}
-                                        className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 flex items-center gap-2"
+                                        className="px-4 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-bold rounded-xl shadow-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
                                     >
                                         <Camera size={14} /> Snap Photo
                                     </button>
@@ -299,21 +299,21 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                         ) : (
                             /* File Upload Box (Same as Family Mode) */
                             <div className="relative">
-                                <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/15 hover:border-violet-500/60 p-5 rounded-2xl cursor-pointer bg-[#181820] transition-all">
+                                <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/15 hover:border-white/30 p-5 rounded-2xl cursor-pointer bg-[#101014] transition-all">
                                     {filePreview ? (
                                         <div className="relative group">
                                             <img 
                                                 src={filePreview} 
                                                 alt="Preview" 
-                                                className="max-h-40 rounded-xl object-contain shadow-lg border border-violet-500/30" 
+                                                className="max-h-40 rounded-xl object-contain shadow-lg border border-white/10" 
                                             />
                                             <div className="text-center mt-2">
-                                                <span className="text-[11px] text-violet-300 font-semibold underline">Click to change photo</span>
+                                                <span className="text-[11px] text-zinc-300 font-semibold underline">Click to change photo</span>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="text-center text-slate-400 py-3">
-                                            <UploadCloud size={32} className="mx-auto mb-2 text-violet-400" />
+                                            <UploadCloud size={32} className="mx-auto mb-2 text-zinc-300" />
                                             <span className="text-xs font-bold text-slate-200 block">Click to Upload Photo</span>
                                             <p className="text-[10px] text-slate-500 mt-1">JPEG, PNG with clear face visibility</p>
                                         </div>
@@ -359,7 +359,7 @@ function EnrollmentForm({ type = 'person', onCancel, onSave, onSuccess }) {
                         <button
                             type="submit"
                             disabled={status === 'submitting'}
-                            className="px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-violet-600/30 transition-all disabled:opacity-50 flex items-center gap-2"
+                            className="px-6 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-95"
                         >
                             {status === 'submitting' ? (
                                 <>

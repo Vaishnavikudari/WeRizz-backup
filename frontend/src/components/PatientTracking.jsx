@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    ArrowLeft,
     MapPin, 
     Navigation, 
-    AlertTriangle, 
     ShieldCheck, 
+    AlertTriangle, 
+    Volume2, 
     PhoneCall, 
-    Compass, 
     Home, 
-    RefreshCw,
-    Volume2,
-    Heart
+    Compass, 
+    RefreshCw, 
+    ArrowLeft 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Haversine distance calculator between 2 coordinates in meters
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3;
+    const phi1 = (lat1 * Math.PI) / 180;
+    const phi2 = (lat2 * Math.PI) / 180;
+    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+        Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+        Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return Math.round(R * c);
+};
 
 const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
     const isPatient = userRole === 'patient';
@@ -28,13 +44,13 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
 
     const [safeRadius, setSafeRadius] = useState(() => {
         const saved = localStorage.getItem('mavora_safe_radius');
-        return saved ? parseInt(saved) : 150; // 150 meters default
+        return saved ? parseInt(saved, 10) : 500;
     });
 
-    // Patient current live location
+    // Patient simulated or live GPS coordinates
     const [patientLoc, setPatientLoc] = useState({
-        lat: 12.9725,
-        lng: 77.5955,
+        lat: 12.9720,
+        lng: 77.5950,
         accuracy: 10,
         lastUpdated: new Date().toLocaleTimeString()
     });
@@ -42,53 +58,41 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
     const [isSimulated, setIsSimulated] = useState(false);
     const [alertMuted, setAlertMuted] = useState(false);
 
-    // Calculate distance between two coordinates in meters (Haversine formula)
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 6371e3; // Earth radius in meters
-        const φ1 = (lat1 * Math.PI) / 180;
-        const φ2 = (lat2 * Math.PI) / 180;
-        const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-        const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+    // Live Geolocation watcher
+    useEffect(() => {
+        if (!('geolocation' in navigator)) return;
 
-        const a =
-            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return Math.round(R * c);
-    };
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                if (!isSimulated) {
+                    setPatientLoc({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: Math.round(pos.coords.accuracy || 10),
+                        lastUpdated: new Date().toLocaleTimeString()
+                    });
+                }
+            },
+            (err) => {
+                console.log("GPS Live Watch Error:", err.message);
+            },
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+        );
 
+        return () => navigator.geolocation.clearWatch(watchId);
+    }, [isSimulated]);
+
+    // Calculate current distance from Home
     const currentDistance = calculateDistance(
-        homeLocation.lat,
-        homeLocation.lng,
         patientLoc.lat,
-        patientLoc.lng
+        patientLoc.lng,
+        homeLocation.lat,
+        homeLocation.lng
     );
 
     const isWandering = currentDistance > safeRadius;
 
-    // Browser Geolocation Live Tracking
-    useEffect(() => {
-        if ('geolocation' in navigator) {
-            const watchId = navigator.geolocation.watchPosition(
-                (pos) => {
-                    if (!isSimulated) {
-                        setPatientLoc({
-                            lat: pos.coords.latitude,
-                            lng: pos.coords.longitude,
-                            accuracy: Math.round(pos.coords.accuracy),
-                            lastUpdated: new Date().toLocaleTimeString()
-                        });
-                    }
-                },
-                (err) => console.log("Geolocation tracking notice:", err.message),
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-
-            return () => navigator.geolocation.clearWatch(watchId);
-        }
-    }, [isSimulated]);
-
-    // Set current position as Home (Caregiver only)
+    // Save current GPS spot as Home Base (Caregiver action)
     const handleSetCurrentAsHome = () => {
         const newHome = {
             lat: patientLoc.lat,
@@ -97,6 +101,7 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
         };
         setHomeLocation(newHome);
         localStorage.setItem('mavora_home_loc', JSON.stringify(newHome));
+        alert("Home location saved successfully!");
     };
 
     // Simulate wandering outside safe zone for demo (Caregiver only)
@@ -148,14 +153,14 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
     };
 
     return (
-        <div className="w-full h-full bg-slate-950 text-slate-100 flex flex-col p-4 md:p-8 overflow-y-auto">
-            {/* Top Header */}
+        <div className="w-full h-full bg-[#000000] text-[#f4f4f2] flex flex-col p-4 md:p-8 overflow-y-auto">
+            {/* Top Header - Minimalist Black & Cursive */}
             <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                     {isPatient && onBack && (
                         <button
                             onClick={onBack}
-                            className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-2 border border-white/10 transition-colors mr-2 cursor-pointer"
+                            className="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 border border-white/10 transition-colors mr-2 cursor-pointer"
                             title="Return to Voice Assistant"
                         >
                             <ArrowLeft size={16} />
@@ -163,29 +168,29 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                         </button>
                     )}
                     <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-xl border ${isPatient ? 'bg-purple-500/20 border-purple-500/40 text-purple-400' : 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400'}`}>
-                            {isPatient ? <Compass size={28} /> : <ShieldCheck size={28} />}
+                        <div className="p-2.5 rounded-xl border border-white/10 bg-zinc-950 text-zinc-300">
+                            {isPatient ? <Compass size={24} /> : <ShieldCheck size={24} />}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">
-                                {isPatient ? "Patient Live Location & Safety Guide" : "Family GPS Tracker & Safety Geofence"}
+                            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                                {isPatient ? (
+                                    <>Patient Live Location & <span className="font-editorial italic font-normal text-zinc-200">Safety Guide</span></>
+                                ) : (
+                                    <>Family GPS Tracker & <span className="font-editorial italic font-normal text-zinc-200">Safety Geofence</span></>
+                                )}
                             </h1>
-                            <p className="text-xs text-slate-400">
+                            <p className="font-handwritten text-lg text-zinc-400 mt-0.5">
                                 {isPatient 
-                                    ? "Real-time location, safe zone status, and one-tap walking directions to your home." 
-                                    : "Real-time location monitoring, geofence radius settings, and autonomous wandering alerts."}
+                                    ? "“You are safe, loved, and always guided back home.”" 
+                                    : "Real-time location monitoring and autonomous wandering alerts."}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Status Pill (No toggle buttons!) */}
+                {/* Minimalist Status Badge */}
                 <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold px-3.5 py-1.5 rounded-full border flex items-center gap-2 ${
-                        isPatient 
-                            ? 'bg-purple-900/40 border-purple-500/40 text-purple-300' 
-                            : 'bg-indigo-900/40 border-indigo-500/40 text-indigo-300'
-                    }`}>
+                    <span className="text-xs font-mono font-medium px-3.5 py-1.5 rounded-full border border-white/10 bg-zinc-950 text-zinc-300 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         {isPatient ? "Patient Mode" : "Caregiver Portal"}
                     </span>
@@ -193,50 +198,57 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
             </div>
 
             {/* CRITICAL WANDERING ALERT BANNER */}
-            {isWandering && !alertMuted && (
-                <div className="max-w-6xl w-full mx-auto mb-6 bg-red-950/80 border-2 border-red-500/80 rounded-2xl p-4 md:p-6 shadow-[0_0_30px_rgba(239,68,68,0.35)] animate-pulse flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-red-500/20 rounded-full text-red-400 flex-shrink-0">
-                            <AlertTriangle size={36} />
+            <AnimatePresence>
+                {isWandering && !alertMuted && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="max-w-6xl w-full mx-auto mb-6 bg-zinc-900 border-2 border-red-500/70 rounded-2xl p-4 md:p-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-red-500/10 rounded-full text-red-400 flex-shrink-0">
+                                <AlertTriangle size={32} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-red-200">
+                                    {isPatient 
+                                        ? "⚠️ You are outside your usual home area" 
+                                        : "⚠️ WANDERING ALERT: Patient has crossed safe perimeter!"}
+                                </h2>
+                                <p className="font-handwritten text-xl text-zinc-300 mt-0.5">
+                                    {isPatient 
+                                        ? `“You are currently ${currentDistance}m from home. Please stay calm. Tap Guide Me Home below.”` 
+                                        : `Patient is currently ${currentDistance}m from Home (Safe limit: ${safeRadius}m).`}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-red-200">
-                                {isPatient 
-                                    ? "⚠️ You are outside your usual home area" 
-                                    : "⚠️ WANDERING ALERT: Patient has crossed safe perimeter!"}
-                            </h2>
-                            <p className="text-sm text-red-300/80">
-                                {isPatient 
-                                    ? `You are currently ${currentDistance} meters from home. Please stay calm. You can tap 'Guide Me Home' to walk back or call family.` 
-                                    : `Patient is currently ${currentDistance} meters from Home (Safe limit is ${safeRadius}m). Immediate attention recommended.`}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                        {isPatient ? (
+                        <div className="flex gap-2 flex-shrink-0">
+                            {isPatient ? (
+                                <button
+                                    onClick={handleGuideHome}
+                                    className="px-5 py-2.5 bg-white text-black font-bold rounded-xl flex items-center gap-2 text-xs shadow-sm hover:bg-zinc-200 cursor-pointer active:scale-95 transition-all"
+                                >
+                                    <Navigation size={16} /> Guide Me Home
+                                </button>
+                            ) : (
+                                <a 
+                                    href="tel:911"
+                                    className="px-5 py-2.5 bg-white text-black font-bold rounded-xl flex items-center gap-2 text-xs shadow-sm hover:bg-zinc-200"
+                                >
+                                    <PhoneCall size={16} /> Call Caregiver
+                                </a>
+                            )}
                             <button
-                                onClick={handleGuideHome}
-                                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 text-sm shadow-md cursor-pointer"
+                                onClick={() => setAlertMuted(true)}
+                                className="px-3 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs rounded-xl cursor-pointer"
                             >
-                                <Navigation size={18} /> Guide Me Home
+                                Dismiss
                             </button>
-                        ) : (
-                            <a 
-                                href="tel:911"
-                                className="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl flex items-center gap-2 text-sm shadow-md"
-                            >
-                                <PhoneCall size={18} /> Call Caregiver
-                            </a>
-                        )}
-                        <button
-                            onClick={() => setAlertMuted(true)}
-                            className="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl cursor-pointer"
-                        >
-                            Dismiss
-                        </button>
-                    </div>
-                </div>
-            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* MAIN CONTENT AREA */}
             <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -244,14 +256,14 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                 {/* LEFT / CENTER: INTERACTIVE LIVE MAP & STATUS */}
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     {/* Embedded Live Map Display */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden relative shadow-xl min-h-[420px] flex flex-col">
-                        <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+                    <div className="bg-[#0b0b0e] border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl min-h-[420px] flex flex-col">
+                        <div className="p-4 bg-[#0e0e12] border-b border-white/10 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <MapPin size={18} className={isWandering ? "text-red-400 animate-bounce" : "text-emerald-400"} />
-                                <span className="font-semibold text-sm">
+                                <MapPin size={16} className={isWandering ? "text-red-400 animate-bounce" : "text-emerald-400"} />
+                                <span className="font-semibold text-xs tracking-wide uppercase font-mono text-zinc-200">
                                     {isPatient ? "Your Real-Time Location" : "Live GPS Map View"}
                                 </span>
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 border border-white/10 text-zinc-400">
                                     Updated {patientLoc.lastUpdated}
                                 </span>
                             </div>
@@ -262,8 +274,8 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                                     onClick={toggleSimulateWander}
                                     className={`text-xs px-3 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
                                         isSimulated 
-                                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' 
-                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                                            ? 'bg-zinc-800 border-white/20 text-white' 
+                                            : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-white'
                                     }`}
                                 >
                                     <RefreshCw size={12} className={isSimulated ? "animate-spin" : ""} />
@@ -272,8 +284,8 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                             )}
                         </div>
 
-                        {/* OpenStreetMap Iframe showing patient live marker */}
-                        <div className="relative flex-1 w-full h-[360px] bg-slate-950">
+                        {/* OpenStreetMap Iframe with clean minimalist dark filter */}
+                        <div className="relative flex-1 w-full h-[360px] bg-black">
                             <iframe
                                 title="Patient Live Location Map"
                                 width="100%"
@@ -281,17 +293,17 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                                 frameBorder="0"
                                 scrolling="no"
                                 src={`https://www.openstreetmap.org/export/embed.html?bbox=${patientLoc.lng - 0.005}%2C${patientLoc.lat - 0.003}%2C${patientLoc.lng + 0.005}%2C${patientLoc.lat + 0.003}&layer=mapnik&marker=${patientLoc.lat}%2C${patientLoc.lng}`}
-                                style={{ filter: 'invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)' }}
+                                style={{ filter: 'invert(90%) hue-rotate(180deg) brightness(85%) contrast(100%)' }}
                             />
 
-                            {/* Overlay Badge on Map */}
-                            <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 p-3 rounded-xl shadow-lg flex items-center gap-3">
-                                <div className={`w-3.5 h-3.5 rounded-full ${isWandering ? 'bg-red-500 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+                            {/* Minimal Overlay Badge on Map */}
+                            <div className="absolute top-4 left-4 bg-zinc-950/90 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-xl flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${isWandering ? 'bg-red-500 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
                                 <div className="text-xs">
-                                    <p className="font-bold text-slate-200">
+                                    <p className="font-semibold text-zinc-100">
                                         {isWandering ? "Outside Safe Zone" : "Inside Safe Zone"}
                                     </p>
-                                    <p className="text-slate-400">
+                                    <p className="text-[11px] text-zinc-400 font-mono">
                                         {currentDistance}m from Home Base
                                     </p>
                                 </div>
@@ -299,14 +311,14 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                         </div>
 
                         {/* Map Footer Bar */}
-                        <div className="p-3 bg-slate-900/80 border-t border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+                        <div className="p-3 bg-[#0a0a0c] border-t border-white/10 flex flex-wrap items-center justify-between text-[11px] text-zinc-400 font-mono gap-2">
                             <span>Lat: {patientLoc.lat.toFixed(5)}, Lng: {patientLoc.lng.toFixed(5)}</span>
                             <span>GPS Accuracy: ±{patientLoc.accuracy}m</span>
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${patientLoc.lat},${patientLoc.lng}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-indigo-400 hover:underline flex items-center gap-1 font-medium"
+                                className="text-white hover:underline flex items-center gap-1 font-semibold"
                             >
                                 Open in Google Maps ↗
                             </a>
@@ -319,55 +331,55 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
 
                     {/* 1. ONLY PATIENT VIEW IN PATIENT MODE */}
                     {isPatient && (
-                        <div className="bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-900 border-2 border-purple-500/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between h-full space-y-6">
+                        <div className="bg-[#0b0b0e] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col justify-between h-full space-y-6">
                             <div>
-                                <div className="flex items-center gap-2 text-purple-400 mb-2">
-                                    <Compass size={24} />
-                                    <span className="font-bold text-sm tracking-wide uppercase">Patient Assistance</span>
+                                <div className="flex items-center gap-2 text-zinc-400 mb-2">
+                                    <Compass size={20} />
+                                    <span className="font-mono font-bold text-xs tracking-wider uppercase">Patient Assistance</span>
                                 </div>
-                                <h3 className="text-2xl font-black text-white mb-2">
+                                <h3 className="text-xl font-bold text-white mb-2">
                                     Are you feeling lost?
                                 </h3>
-                                <p className="text-sm text-slate-300 leading-relaxed">
-                                    Don't worry. Your family is aware and you are completely safe. Tap below anytime and we will walk back home together step-by-step.
+                                <p className="font-handwritten text-2xl text-zinc-300 leading-relaxed">
+                                    “Don't worry. Your family is aware and you are completely safe. Tap below anytime to walk back together.”
                                 </p>
                             </div>
 
                             <div className="space-y-3">
-                                {/* Giant Guide Me Home Button */}
+                                {/* Crisp Apple-Style Guide Me Home Button */}
                                 <button
                                     onClick={handleGuideHome}
-                                    className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xl rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center justify-center gap-3 transition-all transform active:scale-95 cursor-pointer"
+                                    className="w-full py-4 bg-white hover:bg-zinc-200 text-black font-extrabold text-base rounded-2xl shadow-md flex items-center justify-center gap-3 transition-all transform active:scale-95 cursor-pointer"
                                 >
-                                    <Navigation size={28} />
+                                    <Navigation size={22} />
                                     Guide Me Home
                                 </button>
 
                                 {/* Spoken Voice Reassurance Button */}
                                 <button
                                     onClick={handleCalmingVoice}
-                                    className="w-full py-3 bg-purple-600/30 hover:bg-purple-600/40 text-purple-200 font-bold text-sm rounded-xl border border-purple-500/40 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+                                    className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-semibold text-xs rounded-xl border border-white/10 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
                                 >
-                                    <Volume2 size={18} />
+                                    <Volume2 size={16} />
                                     Hear Calming Voice
                                 </button>
 
                                 {/* Quick Family Call */}
                                 <a
                                     href="tel:911"
-                                    className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition-all active:scale-95"
+                                    className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-semibold text-xs rounded-xl border border-white/10 flex items-center justify-center gap-2 transition-all active:scale-95"
                                 >
-                                    <PhoneCall size={16} className="text-emerald-400" />
+                                    <PhoneCall size={15} />
                                     Call Family / Caregiver
                                 </a>
 
                                 {/* Registered Home Address */}
-                                <div className="p-4 bg-slate-950/70 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
-                                    <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
-                                        <Home size={14} className="text-purple-400" />
+                                <div className="p-3.5 bg-zinc-950 rounded-xl border border-white/10 text-xs text-zinc-400 space-y-1">
+                                    <div className="flex items-center gap-1.5 text-zinc-200 font-semibold">
+                                        <Home size={14} className="text-zinc-400" />
                                         <span>Registered Home Address:</span>
                                     </div>
-                                    <p className="text-slate-400">{homeLocation.address}</p>
+                                    <p className="font-mono text-zinc-400 text-[11px]">{homeLocation.address}</p>
                                 </div>
                             </div>
                         </div>
@@ -375,24 +387,24 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
 
                     {/* 2. ONLY FAMILY VIEW IN FAMILY MODE */}
                     {!isPatient && (
-                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between gap-6">
+                        <div className="bg-[#0b0b0e] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col justify-between gap-6">
                             <div>
-                                <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                                    <ShieldCheck size={24} />
-                                    <span className="font-bold text-sm tracking-wide uppercase">Caregiver Geofencing</span>
+                                <div className="flex items-center gap-2 text-zinc-400 mb-2">
+                                    <ShieldCheck size={20} />
+                                    <span className="font-mono font-bold text-xs tracking-wider uppercase">Caregiver Geofencing</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-white mb-1">
                                     Safe Zone Settings
                                 </h3>
-                                <p className="text-xs text-slate-400 mb-4">
-                                    Customize the safe radius around home. If the patient walks past this boundary, automatic wandering alerts trigger immediately.
+                                <p className="font-handwritten text-lg text-zinc-400 mb-4">
+                                    “Configure a gentle boundary to keep them safe and sound.”
                                 </p>
 
                                 {/* Safe Radius Slider */}
-                                <div className="space-y-2 bg-slate-950/70 p-4 rounded-xl border border-slate-800 mb-4">
+                                <div className="space-y-2 bg-zinc-950 p-4 rounded-xl border border-white/10 mb-4">
                                     <div className="flex justify-between text-xs font-semibold">
-                                        <span className="text-slate-300">Safe Boundary Radius:</span>
-                                        <span className="text-indigo-400 font-bold">{safeRadius} Meters</span>
+                                        <span className="text-zinc-300">Safe Boundary Radius:</span>
+                                        <span className="text-white font-mono font-bold">{safeRadius} Meters</span>
                                     </div>
                                     <input
                                         type="range"
@@ -404,9 +416,9 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                                             setSafeRadius(parseInt(e.target.value));
                                             localStorage.setItem('mavora_safe_radius', e.target.value);
                                         }}
-                                        className="w-full accent-indigo-500 cursor-pointer"
+                                        className="w-full accent-white cursor-pointer"
                                     />
-                                    <div className="flex justify-between text-[10px] text-slate-500">
+                                    <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
                                         <span>50m (House)</span>
                                         <span>500m (Neighbourhood)</span>
                                         <span>1000m (Subdistrict)</span>
@@ -416,24 +428,24 @@ const PatientTracking = ({ userRole = 'family', onBack, onSpeakText }) => {
                                 {/* Set Current Location as Home Base */}
                                 <button
                                     onClick={handleSetCurrentAsHome}
-                                    className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                    className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold rounded-xl border border-white/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
                                 >
-                                    <Home size={16} className="text-indigo-400" />
+                                    <Home size={15} />
                                     Save Current Spot as "Home Base"
                                 </button>
                             </div>
 
                             {/* Quick Stats Grid */}
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                                    <p className="text-[11px] text-slate-400">Current Status</p>
-                                    <p className={`text-sm font-bold mt-1 ${isWandering ? 'text-red-400' : 'text-emerald-400'}`}>
+                                <div className="bg-zinc-950 p-3.5 rounded-xl border border-white/10">
+                                    <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">Current Status</p>
+                                    <p className={`text-xs font-bold mt-1 ${isWandering ? 'text-red-400' : 'text-emerald-400'}`}>
                                         {isWandering ? 'Wandering Alert' : 'Safe at Home'}
                                     </p>
                                 </div>
-                                <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-                                    <p className="text-[11px] text-slate-400">Distance from Home</p>
-                                    <p className="text-sm font-bold text-slate-200 mt-1">
+                                <div className="bg-zinc-950 p-3.5 rounded-xl border border-white/10">
+                                    <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">Distance from Home</p>
+                                    <p className="text-xs font-mono font-bold text-white mt-1">
                                         {currentDistance} meters
                                     </p>
                                 </div>

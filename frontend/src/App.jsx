@@ -963,7 +963,7 @@ function App() {
 
         <style>{`
 
-        :root { --bg: #0f172a; --surface: #1e293b; --primary: #8b5cf6; --text: #f8fafc; }
+        :root { --bg: #000000; --surface: #0a0a0c; --primary: #ffffff; --text: #f4f4f2; }
 
         .app-container {
 
@@ -973,7 +973,7 @@ function App() {
 
             width: 100%;
 
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            background: #000000;
 
             color: var(--text);
 
@@ -1077,7 +1077,7 @@ function App() {
 
     <ThemeProvider>
 
-      <div className="fixed inset-0 w-screen h-screen flex flex-col bg-[#0b0b0c] text-[#f4f4f2] transition-colors duration-300 overflow-hidden">
+      <div className="fixed inset-0 w-screen h-screen flex flex-col bg-[#000000] text-[#f4f4f2] transition-colors duration-300 overflow-hidden">
 
         
 

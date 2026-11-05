@@ -96,13 +96,12 @@ function ChatInterface({
             recognition.continuous = false;
             recognition.interimResults = false;
 
-            // Set speech recognition language based on active language
             if (activeLanguage === 'kn') {
-                recognition.lang = 'kn-IN'; // Kannada (Karnataka)
+                recognition.lang = 'kn-IN';
             } else if (activeLanguage === 'hi') {
-                recognition.lang = 'hi-IN'; // Hindi (India)
+                recognition.lang = 'hi-IN';
             } else {
-                recognition.lang = 'en-IN'; // Indian English
+                recognition.lang = 'en-IN';
             }
 
             recognition.onstart = () => {
@@ -112,10 +111,9 @@ function ChatInterface({
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 if (transcript) {
-                    setInput(transcript);
                     onSendMessage(transcript);
-                    setInput("");
                 }
+                setIsListening(false);
             };
 
             recognition.onerror = (event) => {
@@ -153,46 +151,53 @@ function ChatInterface({
     };
 
     return (
-        <div className="flex flex-col h-full w-full bg-slate-900/60 backdrop-blur-xl border-l border-white/5 relative">
-            {/* Header with 3 Language Options */}
-            <div className="p-3.5 px-6 border-b border-white/5 flex items-center justify-between bg-slate-900/90 sticky top-0 z-10 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    <Sparkles className="text-purple-400" size={18} />
-                    <h2 className="font-bold text-slate-200 text-xs tracking-wider uppercase">Voice & Memory Assistant</h2>
+        <div className="flex flex-col h-full w-full bg-[#000000] border-l border-white/10 relative">
+            {/* Header with Cursive Subtitle & Minimalist Language Segmented Control */}
+            <div className="p-3.5 px-6 border-b border-white/10 flex items-center justify-between bg-[#08080a] sticky top-0 z-10 flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                    <Sparkles className="text-zinc-300" size={16} />
+                    <div className="flex items-baseline gap-2">
+                        <h2 className="font-bold text-white text-xs tracking-wider uppercase font-mono">
+                            Voice & Memory Assistant
+                        </h2>
+                        <span className="font-handwritten text-lg text-zinc-400 normal-case hidden sm:inline">
+                            “always here beside you”
+                        </span>
+                    </div>
                 </div>
 
-                {/* 3 Indian Languages Switcher (English, Kannada Karnataka, Hindi) */}
-                <div className="flex items-center gap-1 bg-slate-800/90 border border-slate-700/80 p-1 rounded-xl">
+                {/* Minimalist 3 Languages Segmented Switcher */}
+                <div className="flex items-center gap-1 bg-zinc-950 border border-white/10 p-1 rounded-xl">
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('en')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             activeLanguage === 'en'
-                                ? 'bg-purple-600 text-white shadow-sm'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-zinc-400 hover:text-white'
                         }`}
-                        title="English (Indian Accent)"
+                        title="English"
                     >
                         English
                     </button>
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('kn')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             activeLanguage === 'kn'
-                                ? 'bg-amber-600 text-white shadow-sm'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-zinc-400 hover:text-white'
                         }`}
-                        title="ಕನ್ನಡ (Karnataka Accent)"
+                        title="ಕನ್ನಡ (Kannada)"
                     >
                         ಕನ್ನಡ
                     </button>
                     <button
                         onClick={() => onLanguageChange && onLanguageChange('hi')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                             activeLanguage === 'hi'
-                                ? 'bg-emerald-600 text-white shadow-sm'
-                                : 'text-slate-400 hover:text-white'
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-zinc-400 hover:text-white'
                         }`}
-                        title="हिन्दी (Indian Accent)"
+                        title="हिन्दी (Hindi)"
                     >
                         हिन्दी
                     </button>
@@ -200,15 +205,15 @@ function ChatInterface({
             </div>
 
             {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-700" ref={containerRef}>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4" ref={containerRef}>
                 {messages.length === 0 && !showCamera && (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-3 opacity-60">
-                        <div className="p-3.5 bg-slate-800 rounded-full mb-1 animate-pulse">
-                            <Sparkles size={32} className="text-purple-400" />
+                    <div className="h-full flex flex-col items-center justify-center text-zinc-400 space-y-3 opacity-80">
+                        <div className="p-4 bg-zinc-900 border border-white/10 rounded-full mb-1">
+                            <Sparkles size={28} className="text-zinc-300" />
                         </div>
-                        <h2 className="text-sm font-medium">
-                            {activeLanguage === 'kn' ? "ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?" : activeLanguage === 'hi' ? "मैं आपकी क्या मदद कर सकता हूँ?" : "How can I assist you right now?"}
-                        </h2>
+                        <p className="font-handwritten text-2xl text-zinc-300 text-center">
+                            {activeLanguage === 'kn' ? "“ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?”" : activeLanguage === 'hi' ? "“मैं आपकी क्या मदद कर सकता हूँ?”" : "“How can I assist you today?”"}
+                        </p>
                     </div>
                 )}
 
@@ -216,48 +221,59 @@ function ChatInterface({
                     {messages.map((msg, i) => (
                         <motion.div
                             key={i}
-                            initial={{ opacity: 0, y: 15, scale: 0.96 }}
+                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ duration: 0.25 }}
+                            transition={{ duration: 0.2 }}
                             className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div className={`flex max-w-[85%] md:max-w-[78%] gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                {/* Avatar */}
-                                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${msg.role === 'user'
-                                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
-                                    : 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                                {/* Avatar Icon */}
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border border-white/10 ${msg.role === 'user'
+                                    ? 'bg-zinc-800 text-white'
+                                    : 'bg-zinc-900 text-zinc-300'
                                     }`}>
-                                    {msg.role === 'user' ? <User size={13} className="text-white" /> : <Sparkles size={13} className="text-white" />}
+                                    {msg.role === 'user' ? <User size={13} /> : <Sparkles size={13} />}
                                 </div>
 
                                 {/* Content Bubble */}
-                                <div className={`flex flex-col space-y-2 p-3.5 shadow-lg backdrop-blur-sm border border-white/5 ${msg.role === 'user'
-                                    ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-none'
-                                    : 'bg-slate-800/90 text-slate-200 rounded-2xl rounded-tl-none'
+                                <div className={`flex flex-col space-y-2 p-4 shadow-md border ${msg.role === 'user'
+                                    ? 'bg-zinc-800 text-white rounded-2xl rounded-tr-none border-white/10'
+                                    : 'bg-[#0f0f13] text-zinc-100 rounded-2xl rounded-tl-none border-white/10'
                                     }`}>
                                     
                                     <div className="flex items-start justify-between gap-3">
                                         <p className="text-sm leading-relaxed whitespace-pre-wrap flex-1">{msg.text}</p>
                                         
-                                        {/* VOICE ICON TO READ ALOUD BOT ANSWER IF PATIENT CANNOT READ */}
+                                        {/* Spoken Voice Button */}
                                         {msg.role === 'bot' && (
                                             <button
                                                 onClick={() => handleSpeakAloud(msg.text)}
-                                                className="p-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 hover:text-white transition-all active:scale-90 flex-shrink-0 cursor-pointer border border-purple-500/30"
-                                                title="Read answer aloud in your language (Tap if you cannot read)"
+                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all active:scale-90 flex-shrink-0 cursor-pointer border border-white/10"
+                                                title="Listen aloud"
                                             >
-                                                <Volume2 size={16} />
+                                                <Volume2 size={15} />
                                             </button>
                                         )}
                                     </div>
 
-                                    {/* Interactive In-Chat Enrollment Card for Unknown Persons or Objects */}
+                                    {/* Enrolled Person Photo Card */}
+                                    {msg.image && (
+                                        <div className="mt-2 rounded-xl overflow-hidden border border-white/10 max-w-sm bg-black">
+                                            <img 
+                                                src={normalizeImageSrc(msg.image)} 
+                                                alt="Memory photo"
+                                                className="w-full h-44 object-cover" 
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Interactive In-Chat Enrollment Card */}
                                     {msg.actionPrompt && (
                                         <div className="mt-2.5 pt-2.5 border-t border-white/10 flex flex-col gap-2">
                                             {msg.actionPrompt.type === 'enroll_person_prompt' && (
                                                 <button
                                                     onClick={() => onEnrollWithPhoto ? onEnrollWithPhoto(msg.actionPrompt.blob, 'person') : onEnroll()}
-                                                    className="w-full py-2.5 px-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40 transition-all active:scale-95 cursor-pointer"
+                                                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-black rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
                                                 >
                                                     <UserPlus size={15} />
                                                     <span>
@@ -269,7 +285,7 @@ function ChatInterface({
                                             {msg.actionPrompt.type === 'enroll_object_prompt' && (
                                                 <button
                                                     onClick={() => onEnrollWithPhoto ? onEnrollWithPhoto(msg.actionPrompt.blob, 'object') : onEnrollObject()}
-                                                    className="w-full py-2.5 px-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-amber-900/40 transition-all active:scale-95 cursor-pointer"
+                                                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-black rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
                                                 >
                                                     <PackagePlus size={15} />
                                                     <span>
@@ -279,110 +295,34 @@ function ChatInterface({
                                             )}
                                         </div>
                                     )}
-
-                                    {/* Prominent Listen Button for Patients who cannot read */}
-                                    {msg.role === 'bot' && (
-                                        <button
-                                            onClick={() => handleSpeakAloud(msg.text)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-200 hover:text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer w-fit mt-1 shadow-sm"
-                                        >
-                                            <Volume2 size={14} className="text-purple-400" />
-                                            <span>
-                                                {activeLanguage === 'kn' ? '🔊 ಉತ್ತರಿಸು / ಕೇಳಿ' : activeLanguage === 'hi' ? '🔊 उत्तर सुनें' : '🔊 Listen to Answer'}
-                                            </span>
-                                        </button>
-                                    )}
-
-                                    {/* Optional Audio Playback for Enrolled Family Voice */}
-                                    {msg.audioUrl && (
-                                        <button
-                                            onClick={() => onPlayAudio(msg.audioUrl)}
-                                            className="flex items-center gap-2 text-xs bg-black/25 hover:bg-black/40 p-2 rounded-lg transition-colors w-fit text-slate-300 hover:text-white cursor-pointer"
-                                        >
-                                            <Volume2 size={14} /> Play Family Voice Sample
-                                        </button>
-                                    )}
-
-                                    {/* Image Preview if available */}
-                                    {msg.image && normalizeImageSrc(msg.image) && (
-                                        <img
-                                            src={normalizeImageSrc(msg.image)}
-                                            alt="Captured"
-                                            onError={(e) => { e.currentTarget.style.display = "none"; }}
-                                            className="rounded-xl max-h-48 object-cover mt-2 border border-white/15 shadow-md"
-                                        />
-                                    )}
-
-                                    {/* Gallery Preview if available */}
-                                    {msg.gallery && msg.gallery.length > 0 && (
-                                        <div className="flex gap-2 overflow-x-auto py-1.5 mt-2">
-                                            {msg.gallery.map((imgBase64, idx) => {
-                                                const src = normalizeImageSrc(imgBase64);
-                                                if (!src) return null;
-                                                return (
-                                                    <img
-                                                        key={idx}
-                                                        src={src}
-                                                        alt={`Gallery ${idx}`}
-                                                        className="w-16 h-16 rounded-xl object-cover border border-white/15 shadow-sm flex-shrink-0"
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </motion.div>
                     ))}
-
-                    {/* Camera View Overlay inside Chat */}
-                    {showCamera && (
-                        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
-                            <div className="w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
-                                <div className="p-3.5 bg-slate-950/80 border-b border-white/10 flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-white">
-                                        <Camera size={16} className="text-purple-400" />
-                                        <span className="text-xs font-bold uppercase tracking-wider">
-                                            {cameraMode === 'person' ? "Face Scanner" : "Object Scanner"}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowCamera(false)}
-                                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-                                <div className="flex-1 overflow-hidden relative">
-                                    <CameraView onCapture={handleCameraCapture} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Typing Status Indicator */}
-                    {isTyping && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-3 text-slate-400 text-xs py-2 px-3 bg-slate-800/40 rounded-xl w-fit border border-white/5"
-                        >
-                            <div className="flex gap-1">
-                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"></span>
-                            </div>
-                            <span>{typingStatus || (activeLanguage === 'kn' ? "ಸ್ಮೃತಿಯನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ..." : activeLanguage === 'hi' ? "स्मृति खोजी जा रही है..." : "Thinking...")}</span>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
+
+                {isTyping && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center gap-2 text-zinc-400 text-xs pl-10"
+                    >
+                        <div className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0.2s' }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0.4s' }} />
+                        </div>
+                        <span className="font-handwritten text-lg text-zinc-400">
+                            {typingStatus || "Thinking with care..."}
+                        </span>
+                    </motion.div>
+                )}
+
                 <div ref={endRef} />
-
-
             </div>
 
-            {/* Input Footer */}
-            <div className="p-3 md:px-4 md:py-3 bg-slate-900/95 border-t border-white/5 space-y-2.5 z-20 flex-shrink-0">
+            {/* Input Footer - Minimal Black */}
+            <div className="p-3 md:px-5 md:py-3.5 bg-[#08080a] border-t border-white/10 space-y-2.5 z-20 flex-shrink-0">
                 {/* 1. Suggestions Row */}
                 {suggestions.length > 0 && !showCamera && (
                     <div className="flex gap-2 overflow-x-auto pb-1 noscroll scroll-smooth">
@@ -390,7 +330,7 @@ function ChatInterface({
                             <button
                                 key={i}
                                 onClick={() => onSuggestionClick(s)}
-                                className="whitespace-nowrap px-3.5 py-1.5 bg-slate-800/90 hover:bg-purple-900/40 hover:border-purple-500/50 text-slate-300 hover:text-purple-200 text-xs font-medium rounded-full border border-slate-700/80 transition-all flex-shrink-0 cursor-pointer shadow-sm active:scale-95"
+                                className="whitespace-nowrap px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 hover:border-white/20 text-zinc-300 hover:text-white text-xs font-medium rounded-full border border-white/10 transition-all flex-shrink-0 cursor-pointer shadow-sm active:scale-95"
                             >
                                 {s}
                             </button>
@@ -399,14 +339,14 @@ function ChatInterface({
                 )}
 
                 {/* 2. Text & Voice Input Bar */}
-                <div className="flex items-center gap-2 bg-slate-800/90 rounded-2xl p-1.5 px-3 border border-slate-700/80 focus-within:border-purple-500/50 focus-within:ring-2 focus-within:ring-purple-500/20 transition-all shadow-md">
+                <div className="flex items-center gap-2 bg-[#101013] rounded-2xl p-1.5 px-3 border border-white/10 focus-within:border-white/30 transition-all shadow-md">
                     <input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                         placeholder={getPlaceholderText()}
                         disabled={showCamera}
-                        className="flex-1 bg-transparent text-white py-1.5 text-sm outline-none placeholder:text-slate-500 disabled:opacity-50"
+                        className="flex-1 bg-transparent text-white py-1.5 text-sm outline-none placeholder:text-zinc-500 disabled:opacity-50"
                     />
 
                     {/* Speech Recognition Voice Button for Patient */}
@@ -415,10 +355,10 @@ function ChatInterface({
                         disabled={showCamera}
                         className={`p-2 rounded-xl transition-all active:scale-95 cursor-pointer ${
                             isListening
-                                ? 'bg-red-500 text-white animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.5)]'
-                                : 'bg-slate-700/70 hover:bg-purple-600/40 text-slate-300 hover:text-white'
+                                ? 'bg-white text-black ring-2 ring-white/50 animate-pulse'
+                                : 'bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white'
                         }`}
-                        title={isListening ? "Listening... (Tap to stop)" : "Speak question aloud (Tap if you can't type)"}
+                        title={isListening ? "Listening... (Tap to stop)" : "Speak question aloud"}
                     >
                         {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                     </button>
@@ -426,7 +366,7 @@ function ChatInterface({
                     <button
                         onClick={handleSend}
                         disabled={!input.trim()}
-                        className="p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+                        className="p-2 bg-white hover:bg-zinc-200 text-black rounded-xl disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
                     >
                         <Send size={16} />
                     </button>
@@ -434,30 +374,51 @@ function ChatInterface({
 
                 {/* 3. Action Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-                    <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/70 shadow-sm">
+                    <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-white/10 shadow-sm">
                         <ActionButton icon={<User size={14} />} label="Scan Face" onClick={() => openCamera('person')} />
                         <ActionButton icon={<Package size={14} />} label="Scan Item" onClick={() => openCamera('object')} />
-                        <div className="w-px h-4 bg-slate-700 mx-0.5" />
-                        <ActionButton icon={<UserPlus size={14} />} label="Enroll Person" onClick={onEnroll} color="text-purple-400" />
-                        <ActionButton icon={<PackagePlus size={14} />} label="Enroll Item" onClick={onEnrollObject} color="text-orange-400" />
-
+                        <div className="w-px h-4 bg-white/10 mx-0.5" />
+                        <ActionButton icon={<UserPlus size={14} />} label="Enroll Person" onClick={onEnroll} />
+                        <ActionButton icon={<PackagePlus size={14} />} label="Enroll Item" onClick={onEnrollObject} />
                     </div>
 
-                    <p className="text-[10px] text-slate-500 font-medium hidden sm:block">MAVORA AI Companion</p>
+                    <p className="text-[11px] font-handwritten text-zinc-400 hidden sm:block">
+                        Mavora Memory Companion
+                    </p>
                 </div>
             </div>
+
+            {/* Embedded Camera Modal */}
+            {showCamera && (
+                <div className="absolute inset-0 z-30 bg-black/90 backdrop-blur-md flex flex-col p-4">
+                    <div className="flex items-center justify-between mb-3 text-white">
+                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider">
+                            {cameraMode === 'person' ? "Face Scanner" : "Object Scanner"}
+                        </h3>
+                        <button 
+                            onClick={() => setShowCamera(false)}
+                            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+                    <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 bg-black">
+                        <CameraView onCapture={handleCameraCapture} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-const ActionButton = ({ icon, onClick, color = "text-slate-300", label }) => (
+const ActionButton = ({ icon, onClick, label }) => (
     <button
         onClick={onClick}
         title={label}
-        className={`px-2.5 py-1.5 hover:bg-slate-700/90 rounded-lg ${color} transition-all active:scale-95 cursor-pointer flex items-center gap-1.5`}
+        className="px-2.5 py-1.5 hover:bg-white/10 rounded-lg text-zinc-300 hover:text-white transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
     >
         {icon}
-        <span className="text-[11px] font-semibold">{label}</span>
+        <span className="text-[11px] font-medium">{label}</span>
     </button>
 );
 

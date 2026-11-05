@@ -303,15 +303,15 @@ const CaregiverPortal = () => {
             {/* Top Caregiver Header */}
             <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                 <div>
-                    <div className="flex items-center gap-2 text-violet-400 mb-1">
+                    <div className="flex items-center gap-2 text-zinc-300 mb-1">
                         <ShieldCheck size={18} />
                         <span className="text-[11px] font-bold uppercase tracking-wider">Caretaker & Family Control Panel</span>
                     </div>
                     <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-                        Caregiver Management Portal
+                        Caregiver Management <span className="font-editorial italic font-normal text-zinc-200">Portal</span>
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">
-                        Manage enrolled loved ones, inspect biometric memory, and schedule medication routines.
+                    <p className="font-handwritten text-xl text-zinc-400 mt-1">
+                        “Compassionate biometric memory care and daily reassurance for your loved one.”
                     </p>
                 </div>
 
@@ -321,7 +321,7 @@ const CaregiverPortal = () => {
                         onClick={() => { setActiveSection('enrolled'); fetchPeople(); }}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                             activeSection === 'enrolled'
-                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30'
+                                ? 'bg-white text-black shadow-sm font-semibold'
                                 : 'text-slate-400 hover:text-white'
                         }`}
                     >
@@ -337,7 +337,7 @@ const CaregiverPortal = () => {
                         onClick={() => setActiveSection('enroll')}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                             activeSection === 'enroll'
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                                ? 'bg-white text-black shadow-sm font-semibold'
                                 : 'text-slate-400 hover:text-white'
                         }`}
                     >
@@ -347,7 +347,7 @@ const CaregiverPortal = () => {
                         onClick={() => setActiveSection('schedule')}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                             activeSection === 'schedule'
-                                ? 'bg-slate-800 text-white shadow-lg'
+                                ? 'bg-white text-black shadow-sm font-semibold'
                                 : 'text-slate-400 hover:text-white'
                         }`}
                     >
@@ -427,12 +427,12 @@ const CaregiverPortal = () => {
                         {/* List Content */}
                         {loadingPeople ? (
                             <div className="py-20 flex flex-col items-center justify-center text-slate-500 text-xs gap-3">
-                                <RefreshCw size={24} className="animate-spin text-violet-400" />
+                                <RefreshCw size={24} className="animate-spin text-zinc-300" />
                                 <span>Scanning Qdrant biometric vectors & neural memories...</span>
                             </div>
                         ) : filteredPeople.length === 0 ? (
                             <div className="bg-[#111116] border border-white/10 rounded-3xl p-10 text-center">
-                                <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4 text-violet-400">
+                                <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4 text-zinc-300">
                                     <UserX size={26} />
                                 </div>
                                 <h3 className="text-base font-bold text-white mb-1">
@@ -454,7 +454,7 @@ const CaregiverPortal = () => {
                                 ) : (
                                     <button
                                         onClick={() => setActiveSection('enroll')}
-                                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 inline-flex items-center gap-2"
+                                        className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-white text-xs font-bold rounded-xl shadow-lg shadow-violet-600/30 inline-flex items-center gap-2"
                                     >
                                         <UserPlus size={15} /> Enroll First Loved One
                                     </button>
@@ -476,10 +476,10 @@ const CaregiverPortal = () => {
                                                         <img 
                                                             src={imageSrc} 
                                                             alt={person.name} 
-                                                            className="w-14 h-14 rounded-2xl object-cover border border-violet-500/30 shadow-md flex-shrink-0 bg-slate-900" 
+                                                            className="w-14 h-14 rounded-2xl object-cover border border-white/10 shadow-md flex-shrink-0 bg-slate-900" 
                                                         />
                                                     ) : (
-                                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600/30 to-indigo-600/30 border border-violet-500/40 flex items-center justify-center font-bold text-violet-300 text-lg flex-shrink-0">
+                                                        <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center font-bold text-violet-300 text-lg flex-shrink-0">
                                                             {person.name ? person.name.charAt(0).toUpperCase() : '?'}
                                                         </div>
                                                     )}
@@ -492,7 +492,7 @@ const CaregiverPortal = () => {
                                                         </div>
                                                         
                                                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/30">
+                                                            <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-white/10">
                                                                 {person.relation || 'Family Contact'}
                                                             </span>
                                                             {person.age && (
@@ -568,7 +568,7 @@ const CaregiverPortal = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => openEditModal(person)}
-                                                        className="px-2.5 py-1.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-all border border-violet-500/30"
+                                                        className="px-2.5 py-1.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-all border border-white/10"
                                                         title={`Edit details for ${person.name}`}
                                                     >
                                                         <Edit2 size={12} />
@@ -598,7 +598,7 @@ const CaregiverPortal = () => {
                         <div className="mb-6 flex items-start justify-between">
                             <div>
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <Sparkles size={20} className="text-violet-400" />
+                                    <Sparkles size={20} className="text-zinc-300" />
                                     Enroll Loved One to Patient's Memory Bank
                                 </h2>
                                 <p className="text-xs text-slate-400 mt-1">
@@ -677,7 +677,7 @@ const CaregiverPortal = () => {
                                             <img src={filePreview} alt="Preview" className="max-h-40 rounded-xl object-contain shadow" />
                                         ) : (
                                             <div className="text-center text-slate-400">
-                                                <UploadCloud size={32} className="mx-auto mb-2 text-violet-400" />
+                                                <UploadCloud size={32} className="mx-auto mb-2 text-zinc-300" />
                                                 <span className="text-xs font-bold text-slate-200">Click to Upload Photo</span>
                                                 <p className="text-[10px] text-slate-500 mt-1">JPEG, PNG with clear front face</p>
                                             </div>
@@ -718,7 +718,7 @@ const CaregiverPortal = () => {
                                 <button
                                     type="submit"
                                     disabled={status === 'submitting'}
-                                    className="px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-violet-600/30 transition-all disabled:opacity-50"
+                                    className="px-8 py-3 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-xl shadow-lg shadow-violet-600/30 transition-all disabled:opacity-50"
                                 >
                                     {status === 'submitting' ? 'Generating Face Vectors...' : 'Save Person to Memory'}
                                 </button>
@@ -821,10 +821,10 @@ const CaregiverPortal = () => {
             {/* EDIT PERSON MODAL */}
             {editModalPerson && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-[#14141a] border border-violet-500/40 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-8">
+                    <div className="bg-[#14141a] border border-white/10 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200 my-8">
                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400">
+                                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-300">
                                     <Edit2 size={20} />
                                 </div>
                                 <div>
@@ -924,10 +924,10 @@ const CaregiverPortal = () => {
                                         <img 
                                             src={editFilePreview} 
                                             alt="Preview" 
-                                            className="w-16 h-16 rounded-xl object-cover border border-violet-500/40 bg-slate-900 flex-shrink-0"
+                                            className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-slate-900 flex-shrink-0"
                                         />
                                     ) : (
-                                        <div className="w-16 h-16 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-300 font-bold flex-shrink-0">
+                                        <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-violet-300 font-bold flex-shrink-0">
                                             ?
                                         </div>
                                     )}
@@ -955,7 +955,7 @@ const CaregiverPortal = () => {
                             <div className="p-3.5 bg-[#171720] border border-white/5 rounded-2xl">
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                                        <Mic size={14} className="text-violet-400" />
+                                        <Mic size={14} className="text-zinc-300" />
                                         Voice Profile & Reassurance Message
                                     </label>
                                     {editModalPerson.has_audio && (
@@ -1010,7 +1010,7 @@ const CaregiverPortal = () => {
                                 <button
                                     type="submit"
                                     disabled={updating}
-                                    className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center gap-2 disabled:opacity-50"
+                                    className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {updating ? (
                                         <>
@@ -1061,7 +1061,7 @@ const CaregiverPortal = () => {
 
                         <div className="mb-4 bg-emerald-950/30 border border-emerald-500/20 rounded-2xl p-3.5 text-xs text-slate-300 leading-relaxed">
                             <p className="font-semibold text-emerald-400 mb-1">Why record their voice?</p>
-                            Record a warm greeting (e.g. <em>"Hello Dad, it's {recordModalPerson.name}. You are safe at home."</em>). When the patient feels confused or anxious, Mavora whispers this familiar voice to comfort them.
+                            Record a warm greeting (e.g. <em>"Hello Dad, it's {recordModalPerson.name}. You are safe at home."</em>). <span className="font-handwritten text-xl text-zinc-200 block mt-1">“When the patient feels confused or anxious, Mavora whispers this familiar voice to comfort them.”</span>
                         </div>
 
                         {recordModalPerson.audio_base64 && !recordAudioBlob && (

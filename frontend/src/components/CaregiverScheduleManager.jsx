@@ -3,15 +3,16 @@ import {
     Clock, 
     Pill, 
     CheckCircle2, 
-    PlusCircle, 
+    Plus, 
     Trash2, 
     Sun, 
     SunMedium, 
     Moon, 
     Calendar,
     Undo2,
-    ShieldAlert
+    X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getStoredSchedule, saveStoredSchedule } from '../services/scheduleStore';
 
 const CaregiverScheduleManager = () => {
@@ -87,113 +88,129 @@ const CaregiverScheduleManager = () => {
     };
 
     return (
-        <div className="w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl mt-6">
+        <div className="w-full bg-[#0c0c0f] border border-white/10 rounded-3xl p-6 shadow-2xl mt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                 <div>
-                    <div className="flex items-center gap-2 text-indigo-400">
-                        <Pill size={24} />
-                        <h2 className="text-xl font-bold text-white">
-                            Medication & Daily Routine Management
+                    <div className="flex items-center gap-2 text-zinc-300">
+                        <Pill size={20} />
+                        <h2 className="text-xl font-bold text-white tracking-tight">
+                            Medication & Daily Routine <span className="font-editorial italic font-normal text-zinc-200">Management</span>
                         </h2>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                        Changes made here immediately synchronize with the patient's tablet and screen in real-time.
+                    <p className="font-handwritten text-xl text-zinc-400 mt-0.5">
+                        “Carefully scheduled reminders synchronize with their screen in real time.”
                     </p>
                 </div>
 
                 <button
                     onClick={() => setShowAddModal(true)}
-                    className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all"
+                    className="px-4 py-2.5 bg-white hover:bg-zinc-200 text-black font-semibold text-xs rounded-xl flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
-                    <PlusCircle size={16} /> Add Schedule / Pill
+                    <Plus size={15} /> 
+                    <span>Add Schedule / Pill</span>
                 </button>
             </div>
 
             {/* Modal for adding new routine */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-lg w-full shadow-2xl">
-                        <h3 className="text-lg font-bold text-white mb-4">Add Daily Schedule or Medication</h3>
-                        <form onSubmit={handleAddItem} className="space-y-4">
-                            <div>
-                                <label className="text-xs font-semibold text-slate-300">Title / Medicine Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="e.g. Donepezil 10mg or Afternoon Walk"
-                                    value={newTitle}
-                                    onChange={(e) => setNewTitle(e.target.value)}
-                                    className="w-full mt-1 p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
-                                />
+            <AnimatePresence>
+                {showAddModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-[#0f0f13] border border-white/10 p-6 rounded-3xl max-w-lg w-full shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-base font-bold text-white">Add Daily Schedule or Medication</h3>
+                                <button 
+                                    onClick={() => setShowAddModal(false)}
+                                    className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10"
+                                >
+                                    <X size={18} />
+                                </button>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-3">
+                            <form onSubmit={handleAddItem} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-slate-300">Time</label>
+                                    <label className="text-xs font-semibold text-zinc-300">Title / Medicine Name</label>
                                     <input
                                         type="text"
-                                        placeholder="08:30 AM"
-                                        value={newTime}
-                                        onChange={(e) => setNewTime(e.target.value)}
-                                        className="w-full mt-1 p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                                        required
+                                        placeholder="e.g. Donepezil 10mg or Afternoon Walk"
+                                        value={newTitle}
+                                        onChange={(e) => setNewTitle(e.target.value)}
+                                        className="w-full mt-1 p-2.5 bg-black border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-white/30"
                                     />
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-semibold text-zinc-300">Time</label>
+                                        <input
+                                            type="text"
+                                            placeholder="08:30 AM"
+                                            value={newTime}
+                                            onChange={(e) => setNewTime(e.target.value)}
+                                            className="w-full mt-1 p-2.5 bg-black border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-white/30 font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-zinc-300">Slot</label>
+                                        <select
+                                            value={newSlot}
+                                            onChange={(e) => setNewSlot(e.target.value)}
+                                            className="w-full mt-1 p-2.5 bg-black border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-white/30"
+                                        >
+                                            <option value="morning">Morning (🌅)</option>
+                                            <option value="afternoon">Afternoon (☀️)</option>
+                                            <option value="night">Night (🌙)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="text-xs font-semibold text-slate-300">Slot</label>
+                                    <label className="text-xs font-semibold text-zinc-300">Category</label>
                                     <select
-                                        value={newSlot}
-                                        onChange={(e) => setNewSlot(e.target.value)}
-                                        className="w-full mt-1 p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                                        value={newCategory}
+                                        onChange={(e) => setNewCategory(e.target.value)}
+                                        className="w-full mt-1 p-2.5 bg-black border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-white/30"
                                     >
-                                        <option value="morning">Morning (🌅)</option>
-                                        <option value="afternoon">Afternoon (☀️)</option>
-                                        <option value="night">Night (🌙)</option>
+                                        <option value="medicine">💊 Prescription Medicine</option>
+                                        <option value="routine">⏰ Routine Activity / Habit</option>
                                     </select>
                                 </div>
-                            </div>
 
-                            <div>
-                                <label className="text-xs font-semibold text-slate-300">Category</label>
-                                <select
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    className="w-full mt-1 p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
-                                >
-                                    <option value="medicine">💊 Prescription Medicine</option>
-                                    <option value="routine">⏰ Routine Activity / Habit</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-zinc-300">Instructions / Notes</label>
+                                    <textarea
+                                        rows="2"
+                                        placeholder="e.g. Take 1 tablet with warm milk after dinner"
+                                        value={newNotes}
+                                        onChange={(e) => setNewNotes(e.target.value)}
+                                        className="w-full mt-1 p-2.5 bg-black border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-white/30"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="text-xs font-semibold text-slate-300">Instructions / Notes</label>
-                                <textarea
-                                    rows="2"
-                                    placeholder="e.g. Take 1 tablet with warm milk after dinner"
-                                    value={newNotes}
-                                    onChange={(e) => setNewNotes(e.target.value)}
-                                    className="w-full mt-1 p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAddModal(false)}
-                                    className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-700"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-5 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-500"
-                                >
-                                    Save to Schedule
-                                </button>
-                            </div>
-                        </form>
+                                <div className="flex justify-end gap-3 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddModal(false)}
+                                        className="px-4 py-2 bg-zinc-900 text-zinc-300 text-xs font-semibold rounded-xl hover:bg-zinc-800"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-5 py-2 bg-white hover:bg-zinc-200 text-black text-xs font-bold rounded-xl"
+                                    >
+                                        Save to Schedule
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
 
             {/* Caregiver Schedule Table */}
             <div className="space-y-3">
@@ -202,31 +219,29 @@ const CaregiverScheduleManager = () => {
                         key={item.id}
                         className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all ${
                             item.completed 
-                                ? 'bg-slate-950/40 border-emerald-500/30' 
-                                : 'bg-slate-950/80 border-slate-800'
+                                ? 'bg-[#0b0b0e] border-white/10 opacity-80' 
+                                : 'bg-[#0f0f13] border-white/10 hover:border-white/20'
                         }`}
                     >
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2.5 rounded-xl ${
-                                item.category === 'medicine' ? 'bg-rose-500/10 text-rose-400' : 'bg-indigo-500/10 text-indigo-400'
-                            }`}>
-                                {item.category === 'medicine' ? <Pill size={20} /> : <Clock size={20} />}
+                        <div className="flex items-center gap-3.5">
+                            <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300">
+                                {item.category === 'medicine' ? <Pill size={18} /> : <Clock size={18} />}
                             </div>
 
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
+                                    <span className="text-xs font-mono font-bold text-zinc-300 bg-zinc-900 border border-white/10 px-2 py-0.5 rounded">
                                         {item.time}
                                     </span>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
                                         {item.slot} • {item.category}
                                     </span>
                                 </div>
-                                <h4 className="text-sm font-bold text-white mt-0.5">
+                                <h4 className="text-sm font-bold text-white mt-1">
                                     {item.title}
                                 </h4>
-                                <p className="text-xs text-slate-400">
-                                    {item.notes}
+                                <p className="font-handwritten text-lg text-zinc-400">
+                                    “{item.notes}”
                                 </p>
                             </div>
                         </div>
@@ -235,22 +250,22 @@ const CaregiverScheduleManager = () => {
                         <div className="flex items-center gap-3 self-end md:self-center">
                             {item.completed ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
-                                        <CheckCircle2 size={16} />
+                                    <span className="text-xs text-emerald-400 font-semibold font-mono flex items-center gap-1.5 bg-zinc-950 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+                                        <CheckCircle2 size={15} />
                                         Given at {item.takenAt} ({item.takenBy === 'family' ? 'Caregiver' : 'Patient'})
                                     </span>
                                     <button
                                         onClick={() => handleToggleGiven(item.id)}
                                         title="Mark as un-taken (undo)"
-                                        className="p-1.5 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800"
+                                        className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800"
                                     >
-                                        <Undo2 size={16} />
+                                        <Undo2 size={15} />
                                     </button>
                                 </div>
                             ) : (
                                 <button
                                     onClick={() => handleToggleGiven(item.id)}
-                                    className="px-3 py-1.5 bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold rounded-xl hover:bg-emerald-600/40"
+                                    className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-semibold rounded-xl active:scale-95 transition-all cursor-pointer"
                                 >
                                     Mark as Given by Family
                                 </button>
@@ -258,9 +273,9 @@ const CaregiverScheduleManager = () => {
 
                             <button
                                 onClick={() => handleDelete(item.id)}
-                                className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg hover:bg-slate-800"
+                                className="p-1.5 text-zinc-500 hover:text-red-400 rounded-lg hover:bg-zinc-800 cursor-pointer"
                             >
-                                <Trash2 size={16} />
+                                <Trash2 size={15} />
                             </button>
                         </div>
                     </div>
@@ -271,4 +286,3 @@ const CaregiverScheduleManager = () => {
 };
 
 export default CaregiverScheduleManager;
-
