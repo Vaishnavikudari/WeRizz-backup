@@ -6,7 +6,7 @@ const PatientLostView = ({ onSpeakText, onBack }) => {
     const [patientLoc, setPatientLoc] = useState({ lat: 12.9725, lng: 77.5955 });
     const [homeLocation, setHomeLocation] = useState(() => {
         try {
-            const saved = localStorage.getItem('mavora_home_loc') || localStorage.getItem('masthishq_home_loc');
+            const saved = localStorage.getItem('mavora_home_loc');
             return saved ? JSON.parse(saved) : { lat: 12.9716, lng: 77.5946, address: "Home: 4th Cross, Green Park, Bangalore" };
         } catch (e) {
             return { lat: 12.9716, lng: 77.5946, address: "Home: 4th Cross, Green Park, Bangalore" };

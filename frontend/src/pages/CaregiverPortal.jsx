@@ -1061,7 +1061,7 @@ const CaregiverPortal = () => {
 
                         <div className="mb-4 bg-emerald-950/30 border border-emerald-500/20 rounded-2xl p-3.5 text-xs text-slate-300 leading-relaxed">
                             <p className="font-semibold text-emerald-400 mb-1">Why record their voice?</p>
-                            Record a warm greeting (e.g. <em>"Hello Dad, it's {recordModalPerson.name}. You are safe at home."</em>). When the patient feels confused or anxious, Masthishq whispers this familiar voice to comfort them.
+                            Record a warm greeting (e.g. <em>"Hello Dad, it's {recordModalPerson.name}. You are safe at home."</em>). When the patient feels confused or anxious, Mavora whispers this familiar voice to comfort them.
                         </div>
 
                         {recordModalPerson.audio_base64 && !recordAudioBlob && (
